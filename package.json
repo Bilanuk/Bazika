@@ -1,0 +1,21 @@
+{
+  "name": "bazika",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "turbo": "^1.13.2",
+    "eslint": "^9.0.0",
+    "prettier": "^3.2.5",
+    "tsconfig": "^7.0.0"
+  }
+}
