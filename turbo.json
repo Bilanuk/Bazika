@@ -13,6 +13,20 @@
         "dev": {
             "cache": false,
             "persistent": true
+        },
+        "start": {
+            "dependsOn": [
+                "^build"
+            ],
+            "cache": false,
+            "persistent": true
+        },
+        "start:build": {
+            "dependsOn": [
+                "^build"
+            ],
+            "cache": false,
+            "persistent": true
         }
     }
 }
