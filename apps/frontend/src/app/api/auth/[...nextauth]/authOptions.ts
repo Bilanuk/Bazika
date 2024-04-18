@@ -2,7 +2,7 @@ import type { AuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import { SupabaseAdapter } from '@auth/supabase-adapter';
 import { Adapter } from 'next-auth/adapters';
-import { signJwt } from '@app/_lib/jwt';
+import { signJwt } from '../../../../lib/jwt';
 
 export const authOptions: AuthOptions = {
   secret: process.env.APP_JWT_SECRET,
