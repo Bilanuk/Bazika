@@ -1,8 +1,15 @@
 import type { AuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
+import CredentialsProvider from 'next-auth/providers/credentials';
 import { SupabaseAdapter } from '@auth/supabase-adapter';
 import { Adapter } from 'next-auth/adapters';
-import { signJwt } from '../../../../lib/jwt';
+import { signJwt } from '@/lib/jwt';
+import { authorize } from '@app/api/auth/[...nextauth]/authorize';
+
+export const adapter = SupabaseAdapter({
+  url: process.env.NEXT_PUBLIC_SUPABASE_URL,
+  secret: process.env.SUPABASE_SERVICE_ROLE_KEY,
+}) as Adapter;
 
 export const authOptions: AuthOptions = {
   secret: process.env.APP_JWT_SECRET,
@@ -21,14 +28,20 @@ export const authOptions: AuthOptions = {
         },
       },
     }),
+    CredentialsProvider({
+      id: "googleonetap",
+      name: "google-one-tap",
+
+      credentials: {
+        credential: { type: "text" },
+      },
+      authorize,
+    }),
   ],
   session: {
     strategy: 'jwt',
   },
-  adapter: SupabaseAdapter({
-    url: process.env.NEXT_PUBLIC_SUPABASE_URL,
-    secret: process.env.SUPABASE_SERVICE_ROLE_KEY,
-  }) as Adapter,
+  adapter,
   callbacks: {
     async jwt({ token, account }) {
       if (account) {

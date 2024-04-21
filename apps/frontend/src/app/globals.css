@@ -76,6 +76,14 @@
     }
 }
 
+.body {
+    overflow: scroll;
+}
+
+.html {
+    overflow: scroll;
+}
+
 ::-webkit-scrollbar {
     width: 0.5rem;
 
