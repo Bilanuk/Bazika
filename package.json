@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "build": "turbo run build",
-    "start": "turbo run start",
-    "dev": "turbo run dev",
+    "start": "docker compose up -d && turbo run start",
+    "dev": "docker compose up -d && turbo run dev",
     "start:build": "turbo run build && turbo run start",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""

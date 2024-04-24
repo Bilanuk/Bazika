@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { signIn, SignInOptions, useSession } from 'next-auth/react';
+import { IdConfiguration } from 'google-one-tap';
 
 interface OneTapSigninOptions {
   parentContainerId?: string;
@@ -12,8 +13,6 @@ const useOneTapSignin = (
   const { parentContainerId } = options || {};
   const [isLoading, setIsLoading] = useState(false);
 
-  // Taking advantage in recent development of useSession hook.
-  // If user is unauthenticated, google one tap ui is initialized and rendered
   const { status } = useSession({
     required: true,
     onUnauthenticated() {
@@ -25,7 +24,6 @@ const useOneTapSignin = (
             callback: async (response: any) => {
               setIsLoading(true);
 
-              // Here we call our Provider with the token provided by google
               await signIn('googleonetap', {
                 credential: response.credential,
                 redirect: true,
@@ -34,10 +32,9 @@ const useOneTapSignin = (
               setIsLoading(false);
             },
             prompt_parent_id: parentContainerId,
-          });
+            log_level: 'debug',
+          } as IdConfiguration);
 
-          // Here we just console.log some error situations and reason why the google one tap
-          // is not displayed. You may want to handle it depending on yuor application
           google.accounts.id.prompt((notification: any) => {
             if (notification.isNotDisplayed()) {
               console.log(

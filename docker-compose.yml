@@ -1,0 +1,24 @@
+services:
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - /etc/letsencrypt:/etc/letsencrypt
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  postgres:
+    image: postgres
+    restart: always
+    env_file:
+      - apps/backend/.env
+    volumes:
+      - postgres-bazika:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+volumes:
+  postgres-bazika:
+
