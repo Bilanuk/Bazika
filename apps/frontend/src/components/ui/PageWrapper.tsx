@@ -3,11 +3,7 @@ import { ReactNode } from 'react';
 export default function PageWrapper({ children }: { children: ReactNode }) {
   return (
     <div className='h-full w-full flex-col p-4'>
-      <div
-        className={
-          'grid grid-cols-1 md:grid-cols-4 gap-5 p-4 container'
-        }
-      >
+      <div className={'container grid grid-cols-1 gap-5 p-4 md:grid-cols-4'}>
         {children}
       </div>
     </div>

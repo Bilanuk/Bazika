@@ -6,7 +6,7 @@ import Appbar from '@/components/AppBar';
 import PageWrapper from '@/components/ui/PageWrapper';
 
 // eslint-disable-next-line @next/next/no-document-import-in-page
-import Script from "next/script";
+import Script from 'next/script';
 import OneTapComponent from '@components/OneTapComponent';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -31,7 +31,10 @@ export default function RootLayout({
             </div>
           </div>
         </Providers>
-        <Script src="https://accounts.google.com/gsi/client" strategy="beforeInteractive" />
+        <Script
+          src='https://accounts.google.com/gsi/client'
+          strategy='beforeInteractive'
+        />
       </body>
     </html>
   );

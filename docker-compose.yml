@@ -19,6 +19,20 @@ services:
       - postgres-bazika:/var/lib/postgresql/data
     ports:
       - '5432:5432'
+
+  minio:
+    image: docker.io/bitnami/minio:2022
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    volumes:
+      - 'minio_data:/data'
+    environment:
+      - MINIO_ROOT_USER=roma
+      - MINIO_ROOT_PASSWORD=12345678
+      - MINIO_DEFAULT_BUCKETS=anime
+
 volumes:
   postgres-bazika:
+  minio_data:
 

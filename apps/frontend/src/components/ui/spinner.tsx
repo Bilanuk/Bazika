@@ -38,7 +38,7 @@ const sizesClasses: SizeProps = {
   md: 'w-6 h-6',
   lg: 'w-8 h-8',
   xl: 'w-10 h-10',
-  xxl: 'w-32 h-32'
+  xxl: 'w-32 h-32',
 };
 
 const fillClasses = {
@@ -46,7 +46,7 @@ const fillClasses = {
   blue: 'fill-blue-500',
   red: 'fill-red-500',
   green: 'fill-emerald-500',
-  white: 'fill-white'
+  white: 'fill-white',
 } as FillProps;
 
 const strokeClasses = {
@@ -54,15 +54,15 @@ const strokeClasses = {
   blue: 'stroke-blue-500',
   red: 'stroke-red-500',
   green: 'stroke-emerald-500',
-  white: 'stroke-white'
+  white: 'stroke-white',
 } as StrokeProps;
 
 export const SpokeSpinner = ({
-                               size = 'md',
-                               color = 'slate'
-                             }: SpinnerProps) => {
+  size = 'md',
+  color = 'slate',
+}: SpinnerProps) => {
   return (
-    <div aria-label="Loading..." role="status">
+    <div aria-label='Loading...' role='status'>
       <Spinner
         className={cn(
           'animate-spin',

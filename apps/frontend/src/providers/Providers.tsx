@@ -10,10 +10,7 @@ type ProviderPropType = {
 
 const Providers = ({ children }: ProviderPropType) => {
   return (
-    <ThemeContext
-      attribute={'class'}
-      defaultTheme={'system'}
-    >
+    <ThemeContext attribute={'class'} defaultTheme={'system'}>
       <AuthContext>{children}</AuthContext>
     </ThemeContext>
   );

@@ -29,11 +29,11 @@ export const authOptions: AuthOptions = {
       },
     }),
     CredentialsProvider({
-      id: "googleonetap",
-      name: "google-one-tap",
+      id: 'googleonetap',
+      name: 'google-one-tap',
 
       credentials: {
-        credential: { type: "text" },
+        credential: { type: 'text' },
       },
       authorize,
     }),
