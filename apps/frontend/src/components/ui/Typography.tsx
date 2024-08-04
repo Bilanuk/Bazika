@@ -14,6 +14,10 @@ export function TypographyH3({ children }: { children: string | undefined }) {
   return <h3 className='text-3xl font-bold'>{children}</h3>;
 }
 
+export function TypographyH4({ children }: { children: string | undefined }) {
+  return <h4 className='text-2xl font-bold'>{children}</h4>;
+}
+
 export function LogoTypography({ children }: { children: string | undefined }) {
   return <h2 className={'text-3xl font-bold'}>{children}</h2>;
 }

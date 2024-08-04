@@ -50,7 +50,7 @@ export class SerialsResolver {
   ): Promise<SerialConnection> {
     return this.serialsService.getSerials(
       { first, last, before, after },
-      query,
+      { title: query },
     );
   }
 

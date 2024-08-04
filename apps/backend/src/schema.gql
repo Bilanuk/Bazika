@@ -14,6 +14,7 @@ type Serial {
   title: String!
   description: String!
   rating: Float!
+  imageUrl: String!
   episodes(first: Float, last: Float, after: String, before: String): EpisodeConnection!
 }
 
@@ -36,6 +37,7 @@ type Episode {
   serialId: String!
   createdAt: String!
   updatedAt: String!
+  serial: Serial!
 }
 
 type EpisodeEdge {
@@ -70,6 +72,7 @@ input CreateSerialInput {
   title: String!
   description: String!
   rating: Float! = 0
+  imageUrl: String!
 }
 
 input UpdateSerialInput {
@@ -77,6 +80,7 @@ input UpdateSerialInput {
   title: String
   description: String
   rating: Float
+  imageUrl: String
 }
 
 input CreateEpisodeInput {

@@ -1,13 +1,27 @@
-import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import {
+  Args,
+  Mutation,
+  Parent,
+  Query,
+  ResolveField,
+  Resolver,
+} from '@nestjs/graphql';
 import { Episode, EpisodeConnection } from './models/episode';
 import { EpisodesService } from './episodes.service';
 import { CreateEpisodeInput } from '@/episodes/dto/inputs/create-episode';
 import { UpdateEpisodeInput } from '@/episodes/dto/inputs/update-episode';
 import { GetEpisodeArgs } from '@/episodes/dto/args/get-episode';
+import { Serial } from '@/serials/models/serial';
+import { SerialsService } from '@/serials/serials.service';
+import { forwardRef, Inject } from '@nestjs/common';
 
 @Resolver(() => Episode)
 export class EpisodesResolver {
-  constructor(private readonly episodesService: EpisodesService) {}
+  constructor(
+    private readonly episodesService: EpisodesService,
+    @Inject(forwardRef(() => SerialsService))
+    private readonly serialsService: SerialsService,
+  ) {}
 
   @Query(() => Episode, { name: 'episode', nullable: false })
   async getEpisode(@Args() getEpisodeArgs: GetEpisodeArgs): Promise<Episode> {
@@ -60,5 +74,10 @@ export class EpisodesResolver {
   @Mutation(() => Episode)
   async deleteEpisode(@Args('id') id: string): Promise<Episode> {
     return this.episodesService.deleteEpisode(id);
+  }
+
+  @ResolveField(() => Serial)
+  async serial(@Parent() episode: Episode): Promise<Serial> {
+    return this.serialsService.getSerial(episode.serialId);
   }
 }

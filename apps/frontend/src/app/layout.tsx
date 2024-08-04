@@ -3,7 +3,6 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import Providers from '@/providers/Providers';
 import Appbar from '@/components/AppBar';
-import PageWrapper from '@/components/ui/PageWrapper';
 
 // eslint-disable-next-line @next/next/no-document-import-in-page
 import Script from 'next/script';

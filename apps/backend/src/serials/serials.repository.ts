@@ -2,11 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, Serial } from '@prisma/client';
 import { PrismaService } from 'src/database/prisma.service';
 import { PaginationArgs } from '@/common/pagination/pagination.args';
-import {
-  Connection,
-  Edge,
-  findManyCursorConnection,
-} from '@devoxa/prisma-relay-cursor-connection';
+import { findManyCursorConnection } from '@devoxa/prisma-relay-cursor-connection';
 import { SerialConnection } from '@/serials/models/serial';
 
 @Injectable()
@@ -29,19 +25,13 @@ export class SerialsRepository {
 
   public async getSerials(
     paginationArgs: PaginationArgs,
-    query?: string,
+    where?: Prisma.SerialWhereInput,
   ): Promise<SerialConnection> {
     return await findManyCursorConnection(
-      (args) =>
-        this.prisma.serial.findMany({
-          ...args,
-          where: { title: { contains: query ?? '' } },
-        }),
+      (args) => this.prisma.serial.findMany({ where, ...args }),
       () =>
         this.prisma.serial.count({
-          where: {
-            title: { contains: query ?? '' },
-          },
+          where,
         }),
       paginationArgs,
     );

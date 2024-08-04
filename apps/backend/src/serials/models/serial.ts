@@ -15,6 +15,9 @@ export class Serial {
 
   @Field(() => Float)
   rating: SerialDB['rating'];
+
+  @Field(() => String)
+  imageUrl: SerialDB['imageUrl'];
 }
 
 @ObjectType()
