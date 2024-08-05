@@ -30,7 +30,13 @@
       ],
       "@components/*": [
         "./src/components/*"
-      ]
+      ],
+      "@queries/*": [
+        "./src/queries/*"
+      ],
+      "@common/*": [
+        "./src/common/*"
+      ],
     }
   },
   "include": [

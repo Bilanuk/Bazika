@@ -5,6 +5,7 @@ import { CreateSerialInput } from '@/serials/dto/inputs/create-serial';
 import { UpdateSerialInput } from '@/serials/dto/inputs/update-serial';
 import { SerialConnection } from '@/serials/models/serial';
 import { PaginationArgs } from '@/common/pagination/pagination.args';
+import { GetSerialArgs } from '@/serials/dto/args/get-serial';
 
 @Injectable()
 export class SerialsService {
@@ -16,9 +17,9 @@ export class SerialsService {
 
   public async getSerials(
     paginationArgs: PaginationArgs,
-    query?: string,
+    where?: GetSerialArgs,
   ): Promise<SerialConnection> {
-    return this.serialsRepository.getSerials(paginationArgs, query);
+    return this.serialsRepository.getSerials(paginationArgs, where);
   }
 
   public async createSerial(

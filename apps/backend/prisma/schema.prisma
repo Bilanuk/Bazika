@@ -16,6 +16,7 @@ datasource db {
 model Serial {
   id String @id @default(uuid())
   title String
+  imageUrl String @default("")
   description String
   rating Float @default(0)
   episodes Episode[]

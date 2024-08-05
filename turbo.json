@@ -4,6 +4,9 @@
         "**/.env.*local"
     ],
     "pipeline": {
+        "health-check": {
+            "cache": false
+        },
         "build": {
             "dependsOn": [
                 "^build"
@@ -13,6 +16,13 @@
         "dev": {
             "cache": false,
             "persistent": true
+        },
+        "frontend#dev": {
+            "cache": false,
+            "persistent": true,
+            "dependsOn": [
+                "backend#health-check"
+            ]
         },
         "start": {
             "dependsOn": [
