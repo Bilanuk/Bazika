@@ -3,7 +3,6 @@ import { EpisodesResolver } from './episodes.resolver';
 import { EpisodesService } from './episodes.service';
 import { EpisodesRepository } from './episodes.repository';
 import { PrismaService } from 'src/database/prisma.service';
-import { SerialsService } from '@/serials/serials.service';
 import { SerialsModule } from '@/serials/serials.module';
 
 @Module({

@@ -2,6 +2,9 @@ import { AnimePlaceholder } from '@components/ui/AnimePlaceholder';
 import PageWrapper from '@components/ui/PageWrapper';
 import { TypographyH2 } from '@components/ui/Typography';
 import GetRecentEpisodes from '@components/GetRecentEpisodes';
+import { DEFAULT_REVALIDATE } from '@/common';
+
+export const revalidate = 10;
 
 export default function Home() {
   return (

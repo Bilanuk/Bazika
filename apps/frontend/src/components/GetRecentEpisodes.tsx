@@ -3,8 +3,6 @@ import { getClient } from '@/lib/client';
 import SerialCard from '@components/ui/SerialCard';
 import { Serial } from '@/__generated__/graphql';
 
-export const dynamic = 'force-dynamic';
-
 const GET_EPISODES = gql(/* GraphQL */ `
   query GetEpisodes {
     getEpisodes(first: 10) {

@@ -92,5 +92,5 @@ input CreateEpisodeInput {
 input UpdateEpisodeInput {
   id: String!
   title: String
-  url: String!
+  url: String
 }

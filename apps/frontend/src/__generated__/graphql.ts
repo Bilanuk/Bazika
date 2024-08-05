@@ -174,7 +174,7 @@ export type SerialEdge = {
 export type UpdateEpisodeInput = {
   id: Scalars['String']['input'];
   title?: InputMaybe<Scalars['String']['input']>;
-  url: Scalars['String']['input'];
+  url?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdateSerialInput = {
@@ -367,7 +367,7 @@ export type SerialEdge = {
 export type UpdateEpisodeInput = {
   id: Scalars['String']['input'];
   title?: InputMaybe<Scalars['String']['input']>;
-  url: Scalars['String']['input'];
+  url?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdateSerialInput = {
