@@ -5,7 +5,14 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { join } from 'path';
 import { HealthModule } from '@/health/health.module';
+import { PrismaModule } from './prisma/prisma.module';
+import { PrismaService } from './prisma/prisma.service';
+import { PassportModule } from '@nestjs/passport';
 import * as Joi from 'joi';
+import { AuthModule } from '@/auth/auth.module';
+import { GoogleStrategy } from '@/strategies/google.strategy';
+import { JwtStrategy } from '@/strategies/jwt.strategy';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -24,8 +31,15 @@ import * as Joi from 'joi';
       driver: ApolloDriver,
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
     }),
+    AuthModule,
+    PassportModule,
+    JwtModule.register({
+      global: true,
+    }),
     SerialsModule,
     HealthModule,
+    PrismaModule,
   ],
+  providers: [PrismaService, GoogleStrategy, JwtStrategy],
 })
 export class AppModule {}

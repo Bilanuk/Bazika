@@ -35,10 +35,14 @@ const GET_EPISODES = gql(/* GraphQL */ `
 
 export default async function GetRecentEpisodes() {
   const client = getClient();
-  const { data, loading } = await client.query({ query: GET_EPISODES });
+  const { data, loading, errors } = await client.query({ query: GET_EPISODES });
 
   if (loading) {
     return <h1>Loading...</h1>;
+  }
+
+  if (errors) {
+    return <h1>No episodes found</h1>;
   }
 
   return (

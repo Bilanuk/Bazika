@@ -27,7 +27,13 @@ export class EpisodesService {
   public async createEpisode(
     createEpisodeData: CreateEpisodeInput,
   ): Promise<Episode> {
-    return this.episodesRepository.createEpisode({ data: createEpisodeData });
+    return this.episodesRepository.createEpisode({
+      data: {
+        title: createEpisodeData.title,
+        url: createEpisodeData.url,
+        serial: { connect: { id: createEpisodeData.serialId } },
+      },
+    });
   }
 
   public async updateEpisode(
