@@ -14,6 +14,7 @@ import { GetEpisodeArgs } from '@/episodes/dto/args/get-episode';
 import { Serial } from '@/serials/models/serial';
 import { SerialsService } from '@/serials/serials.service';
 import { forwardRef, Inject } from '@nestjs/common';
+import { Public } from '@/decorators';
 
 @Resolver(() => Episode)
 export class EpisodesResolver {
@@ -29,6 +30,7 @@ export class EpisodesResolver {
   }
 
   @Query(() => EpisodeConnection)
+  @Public()
   async getEpisodes(
     @Args({ name: 'first', type: () => Number, nullable: true }) first?: number,
     @Args({
