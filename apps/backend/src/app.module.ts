@@ -13,6 +13,7 @@ import { AuthModule } from '@/auth/auth.module';
 import { GoogleStrategy } from '@/strategies/google.strategy';
 import { JwtStrategy } from '@/strategies/jwt.strategy';
 import { JwtModule } from '@nestjs/jwt';
+import { UsersModule } from '@/users/users.module';
 
 @Module({
   imports: [
@@ -30,12 +31,16 @@ import { JwtModule } from '@nestjs/jwt';
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+      context: ({ req }) => {
+        return { req };
+      },
     }),
     AuthModule,
     PassportModule,
     JwtModule.register({
       global: true,
     }),
+    UsersModule,
     SerialsModule,
     HealthModule,
     PrismaModule,

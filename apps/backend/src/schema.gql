@@ -52,7 +52,21 @@ type EpisodeConnection {
   totalCount: Int!
 }
 
+type User {
+  id: String!
+  name: String!
+  email: String!
+  emailVerified: Float!
+  image: String!
+}
+
+type UserEdge {
+  cursor: String!
+  node: User!
+}
+
 type Query {
+  user: User!
   serial(id: String!): Serial!
   getSerials(first: Float, last: Float, after: String, before: String, query: String): SerialConnection!
   episode(id: String, serialId: String): Episode!
