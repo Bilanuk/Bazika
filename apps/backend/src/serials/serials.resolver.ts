@@ -28,6 +28,7 @@ export class SerialsResolver {
   }
 
   @Query(() => SerialConnection)
+  @Public()
   async getSerials(
     @Args({ name: 'first', type: () => Number, nullable: true }) first?: number,
     @Args({
