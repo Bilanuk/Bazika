@@ -8,9 +8,7 @@ export class UsersService {
   constructor(private readonly usersRepository: UsersRepository) {}
 
   async getUser(getUserArgs: GetUserArgs): Promise<User> {
-    const { id, email } = getUserArgs;
-    return this.usersRepository.GetUser({
-      where: id ? { id } : { email },
-    });
+    const { id } = getUserArgs;
+    return this.usersRepository.GetUser({ where: { id } });
   }
 }
