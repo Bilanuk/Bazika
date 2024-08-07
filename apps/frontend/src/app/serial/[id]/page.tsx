@@ -7,6 +7,8 @@ import Image from 'next/image';
 import { getClient } from '@/lib/client';
 import { GET_SERIAL } from '@/queries';
 
+export const revalidate = 2;
+
 export default async function SerialPage({
   params,
 }: {

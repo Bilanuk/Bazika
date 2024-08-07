@@ -48,6 +48,7 @@ type Query {
     getEpisodes(after: String, before: String, first: Float, last: Float, query: String): EpisodeConnection!
     getSerials(after: String, before: String, first: Float, last: Float, query: String): SerialConnection!
     serial(id: String!): Serial!
+    user: User!
 }
 
 type Serial {
@@ -71,6 +72,19 @@ type SerialEdge {
     node: Serial!
 }
 
+type User {
+    email: String!
+    emailVerified: Float!
+    id: String!
+    image: String!
+    name: String!
+}
+
+type UserEdge {
+    cursor: String!
+    node: User!
+}
+
 input CreateEpisodeInput {
     serialId: String!
     title: String!
@@ -87,7 +101,7 @@ input CreateSerialInput {
 input UpdateEpisodeInput {
     id: String!
     title: String
-    url: String!
+    url: String
 }
 
 input UpdateSerialInput {

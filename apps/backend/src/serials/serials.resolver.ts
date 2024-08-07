@@ -12,6 +12,7 @@ import { CreateSerialInput } from '@/serials/dto/inputs/create-serial';
 import { UpdateSerialInput } from '@/serials/dto/inputs/update-serial';
 import { EpisodeConnection } from '@/episodes/models/episode';
 import { EpisodesService } from '@/episodes/episodes.service';
+import { Public } from '@/decorators';
 
 @Resolver(() => Serial)
 export class SerialsResolver {
@@ -21,6 +22,7 @@ export class SerialsResolver {
   ) {}
 
   @Query(() => Serial, { name: 'serial', nullable: false })
+  @Public()
   async getSerial(@Args('id') id: string): Promise<Serial> {
     return this.serialsService.getSerial(id);
   }

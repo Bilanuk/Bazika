@@ -10,4 +10,9 @@ export class HealthController {
   healthCheck() {
     return { status: 'ok' };
   }
+
+  @Get('ping')
+  ping() {
+    return { status: 'pong' };
+  }
 }

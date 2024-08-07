@@ -51,7 +51,6 @@ export const authorize = async (
   });
 
   if (!account && user) {
-    console.log('creating and linking account');
     await adapter.linkAccount!({
       userId: user.id,
       provider: 'google',
