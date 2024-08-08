@@ -1,0 +1,12 @@
+services:
+  frontend:
+    container_name: frontend
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+
+  backend:
+    container_name: backend
+    build:
+        context: .
+        dockerfile: apps/backend/Dockerfile
