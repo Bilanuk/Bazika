@@ -20,7 +20,7 @@ export default async function Profile() {
           <TypographyH2>{user.name}</TypographyH2>
           <p>Email: {user.email}</p>
           <p>Email Verified: {user.emailVerified}</p>
-          <img src={user.image} alt={user.name} />
+          <img src={user.image} alt={user.name} referrerPolicy={'no-referrer'} />
         </div>
       </PageWrapper>
     </main>

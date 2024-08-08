@@ -6,8 +6,8 @@
   "main": "index.js",
   "scripts": {
     "build": "turbo run build",
-    "start": "docker compose up -d && turbo run start",
-    "dev": "docker compose up -d && turbo run dev",
+    "start": "turbo run start",
+    "dev": "turbo run dev",
     "start:build": "turbo run build && turbo run start",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
@@ -16,7 +16,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "turbo": "^1.13.2",
+    "turbo": "^2.0.12",
     "eslint": "^9.0.0",
     "prettier": "^3.2.5",
     "tsconfig": "^7.0.0"

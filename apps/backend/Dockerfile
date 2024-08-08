@@ -1,46 +1,40 @@
-# Base image with necessary tools installed
-FROM node:21-alpine AS base
-ENV PNPM_HOME="/pnpm"
-ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable && pnpm install turbo --global && apk add --no-cache libc6-compat
+FROM node:21-alpine AS alpine
+RUN apk update
+RUN apk add --no-cache libc6-compat
 
-# Builder stage
-FROM base AS builder
+FROM alpine AS base
+RUN npm install pnpm turbo --global
+RUN pnpm config set store-dir ~/.pnpm-store
+
+FROM base AS pruner
 WORKDIR /app
 COPY . .
+RUN turbo prune --scope=backend --docker
 
-# Prune and prepare the project for production
-RUN pnpm install turbo --global && turbo prune --scope=backend --docker
-
-# Installer stage to handle dependencies and build
-FROM base AS installer
+FROM base AS builder
 WORKDIR /app
+COPY --from=pruner /app/out/pnpm-lock.yaml ./pnpm-lock.yaml
+COPY --from=pruner /app/out/pnpm-workspace.yaml ./pnpm-workspace.yaml
+COPY --from=pruner /app/out/json/ .
 
-# Add necessary files for installation
-COPY --from=builder /app/out/json/ .
-COPY --from=builder /app/out/pnpm-lock.yaml ./pnpm-lock.yaml
-COPY --from=builder /app/out/pnpm-workspace.yaml ./pnpm-workspace.yaml
-RUN pnpm install
+RUN --mount=type=cache,id=pnpm,target=~/.pnpm-store pnpm install --frozen-lockfile
 
-# Build the backend application
-COPY --from=builder /app/out/full/ .
-COPY turbo.json turbo.json
+COPY --from=pruner /app/out/full/ .
+
 RUN turbo run build --filter=backend
+RUN --mount=type=cache,id=pnpm,target=~/.pnpm-store pnpm prune --prod --no-optional
 
-# Runner stage
-FROM node:21-alpine AS runner
+FROM alpine AS runner
+
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nodejs
+USER nodejs
+
 WORKDIR /app
+COPY --from=builder --chown=nodejs:nodejs /app .
+WORKDIR /app/apps/backend
 
-# Install corepack and pnpm in the runner image
-RUN corepack enable && corepack prepare pnpm@latest --activate && apk add --no-cache curl
-
-# Copy the built application files and install production dependencies
-COPY --from=installer /app/apps/backend/dist ./dist
-COPY --from=installer /app/apps/backend/package.json ./package.json
-COPY --from=installer /app/apps/backend/tsconfig.build.json ./tsconfig.build.json
-COPY --from=installer /app/apps/backend/prisma ./prisma
-
-RUN pnpm install --prod && pnpx prisma generate
+ENV NODE_ENV=production
 
 EXPOSE 4001
 
