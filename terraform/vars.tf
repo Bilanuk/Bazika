@@ -1,92 +1,59 @@
-variable "domain" {
+variable "NEXT_PUBLIC_SUPABASE_URL" {
   type        = string
-  description = "The domain name for the website"
+  description = "Supabase URL for the public API"
 }
 
-variable "certbot_email" {
+variable "SUPABASE_SERVICE_ROLE_KEY" {
   type        = string
-  description = "The email address to use for certbot"
+  description = "Supabase service role key"
 }
 
-variable "db_host" {
-  type    = string
-  default = "localhost"
-}
-
-variable "db_port" {
-  type    = string
-  default = "5432"
-}
-
-variable "db_username" {
-  type    = string
-  default = "postgres"
-}
-
-variable "db_password" {
-  type    = string
-  default = "postgres"
-}
-
-variable "db_name" {
-  type    = string
-  default = "doctoo-database"
-}
-
-variable "token_salt" {
-  type    = string
-  default = "some-salt"
-}
-
-variable "api_url" {
-  type    = string
-  default = "http://localhost:3000/"
-}
-
-variable "domain_url" {
-  type    = string
-  default = "https://enter.radency.com"
-}
-
-variable "test_runner_url" {
-  type    = string
-  default = "http://doctoo.doctoo.local:3001"
-}
-
-variable "auth_token" {
-  type    = string
-  default = "very-secret-token"
-}
-
-variable "sentry_dns" {
+variable "GOOGLE_CLIENT_ID" {
   type        = string
-  description = "Sentry DSN for logging"
+  description = "Google client ID"
 }
 
-variable "mail_host" {
-  type = string
+variable "NEXT_PUBLIC_GOOGLE_CLIENT_ID" {
+  type        = string
+  description = "Google client ID for public use"
 }
 
-variable "mail_port" {
-  type = string
+variable "GOOGLE_CLIENT_SECRET" {
+  type        = string
+  description = "Google client secret"
 }
 
-variable "mail_user" {
-  type = string
+variable "APP_JWT_SECRET" {
+  type        = string
+  description = "JWT secret for the application"
 }
 
-variable "mail_password" {
-  type = string
+variable "NEXTAUTH_SECRET" {
+  type        = string
+  description = "NextAuth secret"
 }
 
-variable "mail_from" {
-  default = "hello@radency.tech"
+variable "NEXTAUTH_URL" {
+  type        = string
+  description = "URL for NextAuth"
 }
 
-variable "aws_access_key_id" {
-  type = string
+variable "NEXT_PUBLIC_API_URL" {
+  type        = string
+  description = "Public API URL"
 }
 
-variable "aws_secret_access_key" {
-  type = string
+variable "DATABASE_URL" {
+  type        = string
+  description = "Database connection URL"
+}
+
+variable "DIRECT_URL" {
+  type        = string
+  description = "Direct database connection URL"
+}
+
+variable "GOOGLE_CALLBACK_URL" {
+  type        = string
+  description = "Google OAuth callback URL"
 }

@@ -10,6 +10,28 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
+  frontend:
+    container_name: frontend
+    env_file:
+      - apps/frontend/.env.local
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    ports:
+      - "3000:3000"
+
+  backend:
+    container_name: backend
+    env_file:
+        - apps/backend/.env
+    build:
+        context: .
+        dockerfile: apps/backend/Dockerfile
+    ports:
+      - "4001:4001"
+
   postgres:
     image: postgres
     restart: always
@@ -35,4 +57,3 @@ services:
 volumes:
   postgres-bazika:
   minio_data:
-

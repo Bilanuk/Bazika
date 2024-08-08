@@ -31,6 +31,16 @@ resource "aws_ecs_task_definition" "bazika-backend" {
         }
       ]
 
+      environment = [
+        {
+          name  = "DOMAIN_NAME"
+          value = var.domain
+        }, {
+          name  = "API_URL"
+          value = var.api_url
+        }
+      ]
+
       mountPoints = [
         {
           sourceVolume  = "letsencrypt"
@@ -64,6 +74,64 @@ resource "aws_ecs_task_definition" "bazika-backend" {
         {
           containerPort = 3000
           hostPort      = 3000
+        }
+      ]
+
+      secrets = [
+        {
+          name      = "DB_HOST"
+          valueFrom = aws_ssm_parameter.db_host.arn
+        }, {
+          name      = "DB_PORT"
+          valueFrom = aws_ssm_parameter.db_port.arn
+        }, {
+          name      = "DB_USERNAME"
+          valueFrom = aws_ssm_parameter.db_username.arn
+        }, {
+          name      = "DB_PASSWORD"
+          valueFrom = aws_ssm_parameter.db_password.arn
+        }, {
+          name      = "DB_NAME"
+          valueFrom = aws_ssm_parameter.db_name.arn
+        }, {
+          name      = "TOKEN_SALT"
+          valueFrom = aws_ssm_parameter.token_salt.arn
+        }, {
+          name      = "DOMAIN_URL"
+          valueFrom = aws_ssm_parameter.domain_url.arn
+        }, {
+          name      = "TEST_RUNNER_URL"
+          valueFrom = aws_ssm_parameter.test_runner_url.arn
+        }, {
+          name      = "AUTH_TOKEN"
+          valueFrom = aws_ssm_parameter.auth_token.arn
+        }, {
+          name      = "SENTRY_DNS"
+          valueFrom = aws_ssm_parameter.sentry_dns.arn
+        }, {
+          name      = "MAIL_HOST"
+          valueFrom = aws_ssm_parameter.mail_host.arn
+        }, {
+          name      = "MAIL_PORT"
+          valueFrom = aws_ssm_parameter.mail_port.arn
+        }, {
+          name      = "MAIL_USER"
+          valueFrom = aws_ssm_parameter.mail_user.arn
+        }, {
+          name      = "MAIL_PASSWORD"
+          valueFrom = aws_ssm_parameter.mail_password.arn
+        }, {
+          name      = "MAIL_FROM"
+          valueFrom = aws_ssm_parameter.mail_from.arn
+        }, {
+          name      = "AWS_ACCESS_KEY_ID"
+          valueFrom = aws_ssm_parameter.aws_access_key_id.arn
+        }, {
+          name      = "AWS_SECRET_ACCESS_KEY"
+          valueFrom = aws_ssm_parameter.aws_secret_access_key.arn
+        }, {
+          name      = "AWS_BUCKET_NAME"
+          valueFrom = aws_ssm_parameter.aws_bucket_name.arn
         }
       ]
 

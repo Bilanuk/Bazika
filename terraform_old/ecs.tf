@@ -140,7 +140,9 @@ resource "aws_launch_template" "ecs_ec2" {
 
       amazon-linux-extras install epel
       yum -y install certbot
-  EOF
+
+      certbot certonly -d ${var.domain} --non-interactive --agree-tos --standalone --email ${var.certbot_email}
+    EOF
   )
 }
 
@@ -193,6 +195,7 @@ resource "aws_ecs_cluster_capacity_providers" "bazika-cluster-capacity-providers
   cluster_name       = aws_ecs_cluster.bazika-cluster.name
   capacity_providers = [
     aws_ecs_capacity_provider.bazika-capacity-provider.name,
+    aws_ecs_capacity_provider.bazika-capacity-provider-test-runner.name
   ]
 
   default_capacity_provider_strategy {
@@ -294,6 +297,98 @@ resource "aws_ecs_service" "bazika-backend" {
 
   capacity_provider_strategy {
     capacity_provider = aws_ecs_capacity_provider.bazika-capacity-provider.name
+    base              = 1
+    weight            = 100
+  }
+
+  ordered_placement_strategy {
+    type  = "spread"
+    field = "attribute:ecs.availability-zone"
+  }
+
+  lifecycle {
+    ignore_changes = [desired_count]
+  }
+}
+
+resource "aws_launch_template" "ecs_ec2_test_runner" {
+  name_prefix            = "bazika-ecs-ec2-test-runner-"
+  image_id               = data.aws_ssm_parameter.ecs_node_ami.value
+  instance_type          = "t2.micro"
+  vpc_security_group_ids = [aws_security_group.ecs_node_sg_task-runner.id]
+
+  iam_instance_profile { arn = aws_iam_instance_profile.ecs_node.arn }
+  monitoring { enabled = true }
+
+  user_data = base64encode(<<-EOF
+      #!/bin/bash
+      echo ECS_CLUSTER=${aws_ecs_cluster.bazika-cluster.name} >> /etc/ecs/ecs.config;
+    EOF
+  )
+}
+
+resource "aws_autoscaling_group" "ecs_nodes_test_runner" {
+  name_prefix               = "bazika-ecs-nodes-test-runner-"
+  vpc_zone_identifier       = [module.network.subnet_id]
+  max_size                  = 1
+  min_size                  = 1
+  health_check_grace_period = 30
+  health_check_type         = "EC2"
+  protect_from_scale_in     = false
+  force_delete              = true
+
+  launch_template {
+    id      = aws_launch_template.ecs_ec2_test_runner.id
+    version = "$Latest"
+  }
+
+  tag {
+    key                 = "Name"
+    value               = "bazika-ecs-cluster-test-runner"
+    propagate_at_launch = true
+  }
+
+  tag {
+    key                 = "AmazonECSManaged"
+    value               = ""
+    propagate_at_launch = true
+  }
+}
+
+resource "aws_ecs_capacity_provider" "bazika-capacity-provider-test-runner" {
+  name = "bazika-capacity-provider-test-runner"
+
+  auto_scaling_group_provider {
+    auto_scaling_group_arn         = aws_autoscaling_group.ecs_nodes_test_runner.arn
+    managed_termination_protection = "DISABLED"
+
+    managed_scaling {
+      maximum_scaling_step_size = 1
+      minimum_scaling_step_size = 1
+      status                    = "ENABLED"
+      target_capacity           = 100
+    }
+  }
+}
+
+resource "aws_ecs_service" "bazika-test-runner" {
+  name                               = "bazika-test-runner"
+  cluster                            = aws_ecs_cluster.bazika-cluster.id
+  task_definition                    = aws_ecs_task_definition.bazika-test-runner.arn
+  deployment_minimum_healthy_percent = 0
+  desired_count                      = 1
+
+  network_configuration {
+    security_groups = [aws_security_group.ecs_task.id]
+    subnets         = [module.network.subnet_id]
+  }
+
+  service_registries {
+    registry_arn = aws_service_discovery_service.bazika_service.arn
+  }
+
+  capacity_provider_strategy {
+    capacity_provider = aws_ecs_capacity_provider.bazika-capacity-provider-test-runner.name
     base              = 1
     weight            = 100
   }

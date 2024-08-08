@@ -23,20 +23,20 @@ resource "aws_security_group" "allow_nfs_inbound" {
   }
 }
 
-resource "aws_efs_file_system" "doctoo" {
+resource "aws_efs_file_system" "bazika" {
   tags = {
-    Name = "doctoo-ecs-efs"
+    Name = "bazika-ecs-efs"
   }
 }
 
-resource "aws_efs_mount_target" "doctoo" {
-  file_system_id  = aws_efs_file_system.doctoo.id
+resource "aws_efs_mount_target" "bazika" {
+  file_system_id  = aws_efs_file_system.bazika.id
   subnet_id       = module.network.subnet_id
   security_groups = [aws_security_group.allow_nfs_inbound.id]
 }
 
-resource "aws_efs_access_point" "doctoo-postgres" {
-  file_system_id = aws_efs_file_system.doctoo.id
+resource "aws_efs_access_point" "bazika-postgres" {
+  file_system_id = aws_efs_file_system.bazika.id
   root_directory {
     path = "/postgres"
     creation_info {
@@ -47,8 +47,8 @@ resource "aws_efs_access_point" "doctoo-postgres" {
   }
 }
 
-resource "aws_efs_access_point" "doctoo-test-runner-tasks" {
-  file_system_id = aws_efs_file_system.doctoo.id
+resource "aws_efs_access_point" "bazika-test-runner-tasks" {
+  file_system_id = aws_efs_file_system.bazika.id
   root_directory {
     path = "/test-runner-tasks"
     creation_info {
@@ -59,8 +59,8 @@ resource "aws_efs_access_point" "doctoo-test-runner-tasks" {
   }
 }
 
-resource "aws_efs_access_point" "doctoo-test-runner-sandbox" {
-  file_system_id = aws_efs_file_system.doctoo.id
+resource "aws_efs_access_point" "bazika-test-runner-sandbox" {
+  file_system_id = aws_efs_file_system.bazika.id
   root_directory {
     path = "/test-runner-sandbox"
     creation_info {
