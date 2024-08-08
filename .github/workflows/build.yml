@@ -59,7 +59,7 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: latest
         run: |
-          docker-compose build frontend backend
+          docker compose build frontend backend
           docker tag frontend:latest $ECR_REGISTRY/frontend:$IMAGE_TAG
           docker tag backend:latest $ECR_REGISTRY/backend:$IMAGE_TAG
           docker push $ECR_REGISTRY/frontend:$IMAGE_TAG
