@@ -5,6 +5,10 @@ on:
     branches:
       - main
   workflow_dispatch:
+  workflow_call:
+    secrets:
+      TF_API_TOKEN:
+        required: true
 
 env:
   TF_WORKING_DIR: ./terraform
@@ -16,12 +20,10 @@ jobs:
       run:
         shell: bash
         working-directory: ${{ env.TF_WORKING_DIR }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-
-      - name: echo
-        run: echo ${{ secrets.TF_API_TOKEN }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
