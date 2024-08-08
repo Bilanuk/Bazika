@@ -12,8 +12,6 @@ services:
 
   frontend:
     container_name: frontend
-    env_file:
-      - apps/frontend/.env.local
     build:
       context: .
       dockerfile: apps/frontend/Dockerfile
@@ -22,8 +20,7 @@ services:
 
   backend:
     container_name: backend
-    env_file:
-        - apps/backend/.env
+
     build:
         context: .
         dockerfile: apps/backend/Dockerfile
