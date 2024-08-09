@@ -72,7 +72,7 @@ jobs:
           docker compose -f docker-compose.build.yml build frontend backend nginx
           docker tag bazika-frontend:latest $ECR_REGISTRY/bazika-frontend:$IMAGE_TAG
           docker tag bazika-backend:latest $ECR_REGISTRY/bazika-backend:$IMAGE_TAG
-          docker tag bazika-nginx:latest $ECR_REGISTRY/bazika-nginx:$IMAGE_TAG
+          docker tag bazika-ingress:latest $ECR_REGISTRY/bazika-ingress:$IMAGE_TAG
           docker push $ECR_REGISTRY/bazika-frontend:$IMAGE_TAG
           docker push $ECR_REGISTRY/bazika-backend:$IMAGE_TAG
-          docker push $ECR_REGISTRY/bazika-nginx:$IMAGE_TAG
+          docker push $ECR_REGISTRY/bazika-ingress:$IMAGE_TAG
