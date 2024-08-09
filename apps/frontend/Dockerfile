@@ -48,6 +48,6 @@ COPY --from=installer --chown=nextjs:nodejs /app/apps/frontend/.next/standalone 
 COPY --from=installer --chown=nextjs:nodejs /app/apps/frontend/.next/static ./apps/frontend/.next/static
 COPY --from=installer --chown=nextjs:nodejs /app/apps/frontend/public ./apps/frontend/public
 
-EXPOSE 4000
+EXPOSE 3000
 
 CMD node apps/frontend/server.js

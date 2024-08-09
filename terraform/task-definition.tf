@@ -80,8 +80,8 @@ resource "aws_ecs_task_definition" "bazika" {
 
       portMappings = [
         {
-          containerPort = 4000
-          hostPort      = 4000
+          containerPort = 3000
+          hostPort      = 3000
           name          = "nextjs"
         }
       ]
