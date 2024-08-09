@@ -4,9 +4,29 @@ services:
     build:
       context: .
       dockerfile: apps/frontend/Dockerfile
+    ports:
+      - "4000:4000"
 
   backend:
     image: bazika-backend:latest
     build:
         context: .
         dockerfile: apps/backend/Dockerfile
+    ports:
+      - "4001:4001"
+
+  nginx:
+    image: bazika-nginx:latest
+    build:
+      context: nginx
+      dockerfile: Dockerfile
+    environment:
+      - DOMAIN_NAME=test.bazika.com
+      - APP_URL=http://frontend:3000
+      - API_URL=http://backend:4001
+    depends_on:
+      - frontend
+      - backend
+    ports:
+        - "80:80"
+        - "443:443"
