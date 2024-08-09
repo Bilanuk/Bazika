@@ -68,13 +68,11 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: latest
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}
-          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
         run: |
-          docker compose -f docker-compose.build.yml build frontend backend
+          docker compose -f docker-compose.build.yml build frontend backend nginx
           docker tag bazika-frontend:latest $ECR_REGISTRY/bazika-frontend:$IMAGE_TAG
           docker tag bazika-backend:latest $ECR_REGISTRY/bazika-backend:$IMAGE_TAG
+          docker tag bazika-nginx:latest $ECR_REGISTRY/bazika-nginx:$IMAGE_TAG
           docker push $ECR_REGISTRY/bazika-frontend:$IMAGE_TAG
           docker push $ECR_REGISTRY/bazika-backend:$IMAGE_TAG
-
+          docker push $ECR_REGISTRY/bazika-nginx:$IMAGE_TAG
