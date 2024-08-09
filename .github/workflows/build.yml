@@ -54,19 +54,13 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v1
 
       - name: Create .env.local file using envsubst
+        working-directory: apps/frontend
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}
           NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
         run: |
-          cd apps/frontend          
-          cat <<EOF > .env.envsubst
-            NEXT_PUBLIC_SUPABASE_URL=\${NEXT_PUBLIC_SUPABASE_URL}
-            NEXT_PUBLIC_GOOGLE_CLIENT_ID=\${NEXT_PUBLIC_GOOGLE_CLIENT_ID}
-            NEXT_PUBLIC_API_URL=\${NEXT_PUBLIC_API_URL}
-            EOF
-
-            envsubst < .env.envsubst > .env.local
+          envsubst < .env.envsubst > .env.local
 
       - name: Build, tag, and push images to Amazon ECR
         id: build-image
