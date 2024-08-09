@@ -14,7 +14,7 @@ resource "aws_ecs_task_definition" "bazika-backend" {
   container_definitions = jsonencode([
     {
       name      = "client"
-      image     = "${module.ecr.bazika-client-repository-url}:latest"
+      image     = "${module.ecr.bazika-frontend-repository-url}:latest"
       essential = true
       memory    = 100
       cpu       = 20
