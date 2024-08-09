@@ -10,6 +10,11 @@ const config: CodegenConfig = {
       presetConfig: {
         gqlTagName: 'gql',
       },
+      config: {
+        fetcher: {
+          endpoint: 'process.env.NEXT_PUBLIC_API_URL',
+        }
+      }
     },
   },
   ignoreNoDocuments: true,
