@@ -10,30 +10,30 @@ env:
   TF_WORKING_DIR: ./terraform
 
 jobs:
-  terraform:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash
-        working-directory: ${{ env.TF_WORKING_DIR }}
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
-
-      - name: Terraform Init
-        run: terraform init
-
-      - name: Terraform Apply
-        run: terraform apply -target=module.ecr -auto-approve
-
-      - name: Terraform Output
-        run: terraform output
+#  terraform:
+#    runs-on: ubuntu-latest
+#    defaults:
+#      run:
+#        shell: bash
+#        working-directory: ${{ env.TF_WORKING_DIR }}
+#
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v2
+#
+#      - name: Setup Terraform
+#        uses: hashicorp/setup-terraform@v3
+#        with:
+#          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+#
+#      - name: Terraform Init
+#        run: terraform init
+#
+#      - name: Terraform Apply
+#        run: terraform apply -target=module.ecr -auto-approve
+#
+#      - name: Terraform Output
+#        run: terraform output
 
   build:
     runs-on: ubuntu-latest
@@ -53,6 +53,17 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
+      - name: Build .env.local file
+        working-directory: ./apps/frontend
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+        run: |
+          envsubst < .env.envsubst > .env.local
+          cat .env.local
+          pwd
+
       - name: Build, tag, and push images to Amazon ECR
         id: build-image
         env:
@@ -62,13 +73,8 @@ jobs:
           NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}
           NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
         run: |
-          cd apps/frontend
-          envsubst < .env.envsubst > .env.local
-          cat .env.local
-          cd ../..
-          docker compose -f docker-compose.build.yml build frontend backend
+          cat ./apps/frontend/.env.local
+          docker compose -f docker-compose.build.yml build frontend
           docker tag frontend:latest $ECR_REGISTRY/frontend:$IMAGE_TAG
-          docker tag backend:latest $ECR_REGISTRY/backend:$IMAGE_TAG
           docker push $ECR_REGISTRY/frontend:$IMAGE_TAG
-          docker push $ECR_REGISTRY/backend:$IMAGE_TAG
 

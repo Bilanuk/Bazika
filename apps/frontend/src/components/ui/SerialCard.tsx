@@ -16,6 +16,7 @@ export default function SerialCard({ serial }: SerialCardProps) {
           <Image
             src={serial.imageUrl}
             alt={serial.title}
+            priority={true}
             width={240}
             height={340}
             blurDataURL={serial.imageUrl}
