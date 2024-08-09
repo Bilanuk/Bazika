@@ -1,12 +1,12 @@
 services:
   frontend:
-    container_name: frontend
+    image: bazika-frontend:latest
     build:
       context: .
       dockerfile: apps/frontend/Dockerfile
 
   backend:
-    container_name: backend
+    image: bazika-backend:latest
     build:
         context: .
         dockerfile: apps/backend/Dockerfile

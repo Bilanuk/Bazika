@@ -1,5 +1,5 @@
-resource "aws_ecr_repository" "bazika-client" {
-  name                 = "bazika-client"
+resource "aws_ecr_repository" "bazika-frontend" {
+  name                 = "bazika-frontend"
   image_tag_mutability = "MUTABLE"
   force_delete         = false
 }
@@ -10,8 +10,8 @@ resource "aws_ecr_repository" "bazika-backend" {
   force_delete         = false
 }
 
-output "bazika-client-repository-url" {
-  value = aws_ecr_repository.bazika-client.repository_url
+output "bazika-frontend-repository-url" {
+  value = aws_ecr_repository.bazika-frontend.repository_url
 }
 
 output "bazika-backend-repository-url" {

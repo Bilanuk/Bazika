@@ -72,7 +72,9 @@ jobs:
           NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}
           NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
         run: |
-          docker compose -f docker-compose.build.yml build frontend
-          docker tag frontend:latest $ECR_REGISTRY/frontend:$IMAGE_TAG
-          docker push $ECR_REGISTRY/frontend:$IMAGE_TAG
+          docker compose -f docker-compose.build.yml build frontend backend
+          docker tag bazika-frontend:latest $ECR_REGISTRY/bazika-frontend:$IMAGE_TAG
+          docker tag bazika-backend:latest $ECR_REGISTRY/bazika-backend:$IMAGE_TAG
+          docker push $ECR_REGISTRY/bazika-frontend:$IMAGE_TAG
+          docker push $ECR_REGISTRY/bazika-backend:$IMAGE_TAG
 
