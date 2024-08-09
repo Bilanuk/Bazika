@@ -62,6 +62,11 @@ resource "aws_ecs_task_definition" "bazika" {
         }
       ]
 
+      links = [
+        "backend",
+        "frontend"
+      ]
+
       logConfiguration = {
         logDriver = "awslogs"
         options   = {
@@ -122,6 +127,10 @@ resource "aws_ecs_task_definition" "bazika" {
           containerName = "backend"
           condition     = "START"
         }
+      ]
+
+      links = [
+        "backend"
       ]
 
       logConfiguration = {
