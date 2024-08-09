@@ -41,33 +41,6 @@ resource "aws_iam_instance_profile" "ecs_node" {
   role        = aws_iam_role.ecs_node_role.name
 }
 
-resource "aws_security_group" "ecs_node_sg_task-runner" {
-  name_prefix = "bazika-ecs-node-sg-task-runner"
-  vpc_id      = module.network.vpc_id
-
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    from_port   = 3001
-    to_port     = 3001
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 65535
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
-
-
 resource "aws_ecs_cluster" "bazika-cluster" {
   name = "bazika-cluster"
 
@@ -140,7 +113,9 @@ resource "aws_launch_template" "ecs_ec2" {
 
       amazon-linux-extras install epel
       yum -y install certbot
-  EOF
+
+      certbot certonly -d ${var.DOMAIN_NAME} --non-interactive --agree-tos --standalone --email ${var.CERTBOT_EMAIL}
+    EOF
   )
 }
 
@@ -286,9 +261,9 @@ resource "aws_security_group" "ecs_task" {
 }
 
 resource "aws_ecs_service" "bazika-backend" {
-  name                               = "bazika-backend"
+  name                               = "bazika"
   cluster                            = aws_ecs_cluster.bazika-cluster.id
-  task_definition                    = aws_ecs_task_definition.bazika-backend.arn
+  task_definition                    = aws_ecs_task_definition.bazika.arn
   deployment_minimum_healthy_percent = 0
   desired_count                      = 1
 
@@ -305,25 +280,5 @@ resource "aws_ecs_service" "bazika-backend" {
 
   lifecycle {
     ignore_changes = [desired_count]
-  }
-}
-
-resource "aws_service_discovery_private_dns_namespace" "bazika_namespace" {
-  name = "bazika.local"
-  vpc  = module.network.vpc_id
-}
-
-resource "aws_service_discovery_service" "bazika_service" {
-  name = "bazika"
-
-  dns_config {
-    namespace_id = aws_service_discovery_private_dns_namespace.bazika_namespace.id
-
-    dns_records {
-      ttl  = 10
-      type = "A"
-    }
-
-    routing_policy = "MULTIVALUE"
   }
 }

@@ -72,3 +72,8 @@ variable "GOOGLE_CALLBACK_URL" {
   type        = string
   description = "Google OAuth callback URL"
 }
+
+variable "CERTBOT_EMAIL" {
+  type        = string
+  description = "The email address to use for certbot"
+}

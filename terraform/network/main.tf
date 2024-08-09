@@ -73,14 +73,6 @@ resource "aws_security_group" "ecs_node_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # retool whitelist
-  ingress {
-    from_port   = 5432
-    to_port     = 5432
-    protocol    = "tcp"
-    cidr_blocks = ["35.90.103.132/30", "44.208.168.68/30"]
-  }
-
   dynamic "ingress" {
     for_each = [80, 443]
     content {

@@ -1,5 +1,5 @@
-resource "aws_ecs_task_definition" "bazika-backend" {
-  family             = "bazika-core"
+resource "aws_ecs_task_definition" "bazika" {
+  family             = "bazika"
   task_role_arn      = aws_iam_role.ecs_task_role.arn
   execution_role_arn = aws_iam_role.ecs_task_role.arn
   network_mode       = "bridge"
@@ -35,7 +35,6 @@ resource "aws_ecs_task_definition" "bazika-backend" {
         {
           sourceVolume  = "letsencrypt"
           containerPath = "/etc/letsencrypt"
-          readOnly      = true
         }
       ]
 
