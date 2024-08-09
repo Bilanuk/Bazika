@@ -16,7 +16,7 @@ services:
       - "4001:4001"
 
   nginx:
-    image: bazika-nginx:latest
+    image: bazika-ingress:latest
     build:
       context: nginx
       dockerfile: Dockerfile
