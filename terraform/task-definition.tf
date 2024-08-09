@@ -86,6 +86,37 @@ resource "aws_ecs_task_definition" "bazika" {
         }
       ]
 
+      secrets = [
+        {
+          name      = "NEXT_PUBLIC_SUPABASE_URL"
+          valueFrom = aws_ssm_parameter.NEXT_PUBLIC_SUPABASE_URL.arn
+        }, {
+          name      = "SUPABASE_SERVICE_ROLE_KEY"
+          valueFrom = aws_ssm_parameter.SUPABASE_SERVICE_ROLE_KEY.arn
+        }, {
+          name      = "GOOGLE_CLIENT_ID"
+          valueFrom = aws_ssm_parameter.GOOGLE_CLIENT_ID.arn
+        }, {
+          name      = "NEXT_PUBLIC_GOOGLE_CLIENT_ID"
+          valueFrom = aws_ssm_parameter.NEXT_PUBLIC_GOOGLE_CLIENT_ID.arn
+        }, {
+          name      = "GOOGLE_CLIENT_SECRET"
+          valueFrom = aws_ssm_parameter.GOOGLE_CLIENT_SECRET.arn
+        }, {
+          name      = "APP_JWT_SECRET"
+          valueFrom = aws_ssm_parameter.APP_JWT_SECRET.arn
+        }, {
+          name      = "NEXTAUTH_SECRET"
+          valueFrom = aws_ssm_parameter.NEXTAUTH_SECRET.arn
+        }, {
+          name      = "NEXTAUTH_URL"
+          valueFrom = aws_ssm_parameter.NEXTAUTH_URL.arn
+        }, {
+          name      = "NEXT_PUBLIC_API_URL"
+          valueFrom = aws_ssm_parameter.NEXT_PUBLIC_API_URL.arn
+        }
+      ]
+
       dependsOn = [
         {
           containerName = "backend"
@@ -112,6 +143,28 @@ resource "aws_ecs_task_definition" "bazika" {
         {
           containerPort = 4001
           hostPort      = 4001
+        }
+      ]
+
+      secrets = [
+        {
+          name      = "DATABASE_URL"
+          valueFrom = aws_ssm_parameter.DATABASE_URL.arn
+        }, {
+          name      = "DIRECT_URL"
+          valueFrom = aws_ssm_parameter.DIRECT_URL.arn
+        }, {
+          name      = "GOOGLE_CLIENT_ID"
+          valueFrom = aws_ssm_parameter.GOOGLE_CLIENT_ID.arn
+        }, {
+          name      = "GOOGLE_CLIENT_SECRET"
+          valueFrom = aws_ssm_parameter.GOOGLE_CLIENT_SECRET.arn
+        }, {
+          name      = "GOOGLE_CALLBACK_URL"
+          valueFrom = aws_ssm_parameter.GOOGLE_CALLBACK_URL.arn
+        }, {
+          name      = "APP_JWT_SECRET"
+          valueFrom = aws_ssm_parameter.APP_JWT_SECRET.arn
         }
       ]
 
