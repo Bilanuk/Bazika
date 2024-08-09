@@ -53,22 +53,18 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Create .env.local file using envsubst
-        working-directory: apps/frontend
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}
-          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
-        run: |
-          envsubst < .env.envsubst > .env.local
-
       - name: Build, tag, and push images to Amazon ECR
         id: build-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: latest
-          NEXT_PUBLIC_SUPABASE_URL: "https://dzmedmmiqtrhxmoqigwx.supabase.co"
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
         run: |
+          cd apps/frontend
+          envsubst < .env.envsubst > .env.local
+          cd ../..
           docker compose -f docker-compose.build.yml build frontend backend
           docker tag frontend:latest $ECR_REGISTRY/frontend:$IMAGE_TAG
           docker tag backend:latest $ECR_REGISTRY/backend:$IMAGE_TAG
