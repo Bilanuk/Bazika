@@ -8,6 +8,21 @@ variable "SUPABASE_SERVICE_ROLE_KEY" {
   description = "Supabase service role key"
 }
 
+variable "DOMAIN_NAME" {
+  type        = string
+  description = "Domain name"
+}
+
+variable "API_URL" {
+  type        = string
+  description = "API URL"
+}
+
+variable "APP_URL" {
+  type        = string
+  description = "Application URL"
+}
+
 variable "GOOGLE_CLIENT_ID" {
   type        = string
   description = "Google client ID"

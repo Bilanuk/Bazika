@@ -22,6 +22,24 @@ resource "aws_ssm_parameter" "NEXT_PUBLIC_GOOGLE_CLIENT_ID" {
   value = var.NEXT_PUBLIC_GOOGLE_CLIENT_ID
 }
 
+resource "aws_ssm_parameter" "DOMAIN" {
+  name  = "DOMAIN"
+  type  = "String"
+  value = var.DOMAIN_NAME
+}
+
+resource "aws_ssm_parameter" "API_URL" {
+  name  = "API_URL"
+  type  = "String"
+  value = var.API_URL
+}
+
+resource "aws_ssm_parameter" "APP_URL" {
+  name  = "APP_URL"
+  type  = "String"
+  value = var.APP_URL
+}
+
 resource "aws_ssm_parameter" "GOOGLE_CLIENT_SECRET" {
   name  = "GOOGLE_CLIENT_SECRET"
   type  = "String"
