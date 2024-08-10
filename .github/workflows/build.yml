@@ -76,3 +76,10 @@ jobs:
           docker push $ECR_REGISTRY/bazika-frontend:$IMAGE_TAG
           docker push $ECR_REGISTRY/bazika-backend:$IMAGE_TAG
           docker push $ECR_REGISTRY/bazika-ingress:$IMAGE_TAG
+
+      - name: Update ECS service
+        env:
+          CLUSTER: ${{ vars.ECS_CLUSTER }}
+          SERVICE: ${{ vars.ECS_SERVICE }}
+        run: |
+          aws ecs update-service --cluster $CLUSTER --service $SERVICE --force-new-deployment

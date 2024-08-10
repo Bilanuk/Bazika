@@ -6,7 +6,6 @@ export default function Template({ children }: { children: React.ReactNode }) {
   // TODO: get value from user settings
   const isAnimated = true;
 
-
   if (!isAnimated) {
     return <>{children}</>;
   }

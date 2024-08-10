@@ -1,7 +1,7 @@
 import PageWrapper from '@components/ui/PageWrapper';
 import { TypographyH2 } from '@components/ui/Typography';
 import { getClient } from '@/lib/client';
-import { GET_USER } from '@/queries/user';
+import { GET_USER } from '@queries/user';
 
 export const revalidate = 2;
 
