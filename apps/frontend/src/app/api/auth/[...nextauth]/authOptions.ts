@@ -31,7 +31,6 @@ export const authOptions: AuthOptions = {
     CredentialsProvider({
       id: 'googleonetap',
       name: 'google-one-tap',
-
       credentials: {
         credential: { type: 'text' },
       },
@@ -59,4 +58,9 @@ export const authOptions: AuthOptions = {
       return session;
     },
   },
+  pages: {
+    signIn: '/signin',
+    signOut: '/signout',
+    error: '/auth/error'
+  }
 };

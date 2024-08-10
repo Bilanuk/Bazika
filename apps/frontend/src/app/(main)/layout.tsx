@@ -1,0 +1,14 @@
+import Appbar from '@/components/AppBar';
+
+export default function MainLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
+  return (
+    <div className='bg-white text-black dark:bg-black dark:text-white'>
+      <div className='min-h-screen dark:bg-black/[.9]'>
+        <Appbar />
+        {children}
+      </div>
+    </div>
+  );
+}

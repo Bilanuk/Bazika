@@ -1,10 +1,16 @@
 'use client';
-import { signIn } from 'next-auth/react';
 import React from 'react';
 import { Button } from '@components/ui/button';
+import { redirect } from 'next/navigation'
+import Link from 'next/link';
+
 
 const SignInButton = () => {
-  return <Button onClick={() => signIn()}>Sign in</Button>;
+  const handleClick = () => {
+    redirect('/signin');
+  }
+
+  return <Link href={'/signin'}><Button>Sign in</Button></Link>
 };
 
 export default SignInButton;
