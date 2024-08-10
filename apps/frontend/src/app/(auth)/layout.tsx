@@ -5,8 +5,8 @@ export default function AuthLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <div className='flex min-h-screen'>
-      <div className='min-h-screen w-1/2'>
+    <div className='flex'>
+      <div className='w-1/2'>
         <LayoutHalfPageImage />
       </div>
       <div className='flex w-1/2 flex-col items-center justify-center'>
