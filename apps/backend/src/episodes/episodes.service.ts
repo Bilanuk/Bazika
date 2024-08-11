@@ -27,11 +27,18 @@ export class EpisodesService {
   public async createEpisode(
     createEpisodeData: CreateEpisodeInput,
   ): Promise<Episode> {
+    const maxEpisode = await this.episodesRepository.findLatestEpisodeBySerial(
+      createEpisodeData.serialId,
+    );
+
+    const episodeNumber = (maxEpisode?.episodeNumber ?? 0) + 1;
+
     return this.episodesRepository.createEpisode({
       data: {
         title: createEpisodeData.title,
         url: createEpisodeData.url,
         serial: { connect: { id: createEpisodeData.serialId } },
+        episodeNumber,
       },
     });
   }

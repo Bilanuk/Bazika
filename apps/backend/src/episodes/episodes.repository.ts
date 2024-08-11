@@ -28,7 +28,12 @@ export class EpisodesRepository {
     where?: Prisma.EpisodeWhereInput,
   ): Promise<EpisodeConnection> {
     return await findManyCursorConnection(
-      (args) => this.prisma.episode.findMany({ where, orderBy: { createdAt: 'asc' }, ...args }),
+      (args) =>
+        this.prisma.episode.findMany({
+          where,
+          orderBy: { createdAt: 'asc' },
+          ...args,
+        }),
       () =>
         this.prisma.episode.count({
           where,
@@ -53,6 +58,15 @@ export class EpisodesRepository {
     const { where } = params;
     return this.prisma.episode.delete({ where }).catch(() => {
       throw new NotFoundException(`Can't find item with id ${where.id}`);
+    });
+  }
+
+  public async findLatestEpisodeBySerial(
+    serialId: string,
+  ): Promise<Episode | null> {
+    return this.prisma.episode.findFirst({
+      where: { serialId },
+      orderBy: { episodeNumber: 'desc' },
     });
   }
 }
