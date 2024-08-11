@@ -37,6 +37,7 @@ type Episode {
   serialId: String!
   createdAt: String!
   updatedAt: String!
+  episodeNumber: Int!
   serial: Serial!
 }
 

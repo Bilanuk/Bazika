@@ -28,7 +28,7 @@ export class EpisodesRepository {
     where?: Prisma.EpisodeWhereInput,
   ): Promise<EpisodeConnection> {
     return await findManyCursorConnection(
-      (args) => this.prisma.episode.findMany({ where, ...args }),
+      (args) => this.prisma.episode.findMany({ where, orderBy: { createdAt: 'asc' }, ...args }),
       () =>
         this.prisma.episode.count({
           where,

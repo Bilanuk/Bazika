@@ -1,37 +1,17 @@
-import { gql } from '@/__generated__';
 import { getClient } from '@/lib/client';
-import SerialCard from '@components/ui/SerialCard';
-import { Serial } from '@/__generated__/graphql';
+import EpisodeCard from '@components/EpisodeCard';
+import { Episode } from '@/__generated__/graphql';
 
-const GET_EPISODES = gql(/* GraphQL */ `
-  query GetEpisodes {
-    getEpisodes(first: 10) {
-      pageInfo {
-        endCursor
-        startCursor
-        hasNextPage
-        hasPreviousPage
-      }
-      totalCount
-      edges {
-        node {
-          id
-          title
-          url
-          createdAt
-          updatedAt
-          serial {
-            id
-            title
-            imageUrl
-            description
-            rating
-          }
-        }
-      }
-    }
-  }
-`);
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '@/components/ui/carousel';
+
+import { GET_EPISODES } from '@/queries';
+import { TypographyH3 } from '@components/ui/Typography';
 
 export default async function GetRecentEpisodes() {
   const client = getClient();
@@ -47,12 +27,18 @@ export default async function GetRecentEpisodes() {
 
   return (
     <>
-      {data.getEpisodes?.edges?.map((edge) => (
-        <SerialCard
-          key={edge.node.id}
-          serial={edge.node.serial as Serial}
-        />
-      ))}
+      <Carousel className='w-full rounded-md p-3'>
+        <TypographyH3>Recent updates</TypographyH3>
+        <CarouselContent>
+          {data.getEpisodes?.edges?.map((edge) => (
+            <CarouselItem key={edge.node.id} className={'basis-1/5 pl-2'}>
+              <EpisodeCard key={edge.node.id} episode={edge.node as Episode} />
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+        <CarouselPrevious />
+        <CarouselNext />
+      </Carousel>
     </>
   );
 }

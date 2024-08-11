@@ -1,4 +1,4 @@
-import { Field, Float, ObjectType } from '@nestjs/graphql';
+import { Field, Float, Int, ObjectType } from '@nestjs/graphql';
 import { Episode as EpisodeDB } from '@prisma/client';
 import PaginatedResponse from '@/common/pagination/pagination';
 
@@ -15,6 +15,8 @@ export class Episode {
   @Field(() => String) createdAt: EpisodeDB['createdAt'];
 
   @Field(() => String) updatedAt: EpisodeDB['updatedAt'];
+
+  @Field(() => Int) episodeNumber: EpisodeDB['episodeNumber'];
 }
 
 @ObjectType()
