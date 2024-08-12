@@ -3,7 +3,6 @@ import EpisodeCard from '@components/EpisodeCard';
 import { Episode } from '@/__generated__/graphql';
 import { CarouselContent, CarouselItem } from '@/components/ui/carousel';
 import { GET_EPISODES } from '@/queries';
-import { TypographyH4 } from '@components/ui/Typography';
 import ClientSideCarousel from '@components/ClientSideCarousel';
 
 export default async function GetRecentEpisodes() {
@@ -20,11 +19,15 @@ export default async function GetRecentEpisodes() {
 
   return (
     <>
-      <TypographyH4>Recent updates</TypographyH4>
       <ClientSideCarousel>
         <CarouselContent>
           {data.getEpisodes?.edges?.map((edge) => (
-            <CarouselItem key={edge.node.id} className={'basis-1/5 pl-2'}>
+            <CarouselItem
+              key={edge.node.id}
+              className={
+                'xs:basis-1/2 pl-2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-60'
+              }
+            >
               <EpisodeCard key={edge.node.id} episode={edge.node as Episode} />
             </CarouselItem>
           ))}
