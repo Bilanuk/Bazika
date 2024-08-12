@@ -1,7 +1,7 @@
-import PageWrapper from '@components/ui/PageWrapper';
+import PageWrapper from '@components/PageWrapper';
 import { TypographyH2 } from '@components/ui/Typography';
 import VideoPlayer from '@components/VideoPlayer';
-import Head from "next/head";
+import Head from 'next/head';
 
 import Image from 'next/image';
 import { getClient } from '@/lib/client';

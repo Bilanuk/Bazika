@@ -1,4 +1,4 @@
-import PageWrapper from '@components/ui/PageWrapper';
+import PageWrapper from '@components/PageWrapper';
 import { TypographyH2 } from '@components/ui/Typography';
 
 export default function Support() {

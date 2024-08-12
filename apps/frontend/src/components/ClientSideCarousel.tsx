@@ -17,7 +17,11 @@ const ClientSideCarousel: React.FC<ClientSideCarouselProps> = ({
 }) => {
   return (
     <Carousel
-      className='w-full rounded-md p-3'
+      opts={{
+        align: 'start',
+        slidesToScroll: 'auto',
+      }}
+      className='rounded-md mx-10 lg:mx-0'
       plugins={[
         Autoplay({
           delay: 3000,
