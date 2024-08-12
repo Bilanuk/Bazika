@@ -18,6 +18,9 @@ export class User {
 
   @Field(() => String)
   image: UserDB['image'];
+
+  @Field(() => String)
+  role: UserDB['role'];
 }
 
 @ObjectType()

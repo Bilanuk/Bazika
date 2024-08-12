@@ -59,6 +59,7 @@ type User {
   email: String!
   emailVerified: Float!
   image: String!
+  role: String!
 }
 
 type UserEdge {
