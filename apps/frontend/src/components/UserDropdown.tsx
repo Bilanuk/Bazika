@@ -1,4 +1,11 @@
-import { Cloud, CreditCard, LifeBuoy, Settings, User } from 'lucide-react';
+import {
+  Cloud,
+  CreditCard,
+  LifeBuoy,
+  Settings,
+  User,
+  LayoutPanelLeft,
+} from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,9 +23,12 @@ import { TypographyP } from '@components/ui/Typography';
 import { authOptions } from '@app/api/auth/[...nextauth]/authOptions';
 
 import Link from 'next/link';
+import { useUser } from '@/hooks';
+import { UserRoles } from '@app/types';
 
 export async function UserDropdown() {
   const session = await getServerSession(authOptions);
+  const user = await useUser();
 
   return (
     <DropdownMenu>
@@ -35,6 +45,15 @@ export async function UserDropdown() {
         <DropdownMenuLabel>My Account</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
+          {user.role === UserRoles.ADMIN && (
+            <Link href='/dashboard'>
+              <DropdownMenuItem>
+                <LayoutPanelLeft className='mr-2 h-4 w-4' />
+                <span>Dashboard</span>
+                <DropdownMenuShortcut>⌘D</DropdownMenuShortcut>
+              </DropdownMenuItem>
+            </Link>
+          )}
           <Link href='/profile'>
             <DropdownMenuItem>
               <User className='mr-2 h-4 w-4' />
