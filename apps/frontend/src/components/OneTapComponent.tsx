@@ -1,6 +1,6 @@
 'use client';
 
-import useOneTapSignin from '@/hooks/OneTapSignin';
+import useOneTapSignin from '@hooks/client/OneTapSignin';
 
 const OneTapComponent = () => {
   const { isLoading: oneTapIsLoading } = useOneTapSignin({

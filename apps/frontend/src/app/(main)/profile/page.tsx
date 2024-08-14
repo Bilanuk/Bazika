@@ -1,17 +1,11 @@
 import PageWrapper from '@components/PageWrapper';
 import { TypographyH2 } from '@components/ui/Typography';
-import { getClient } from '@/lib/client';
-import { GET_USER } from '@queries/user';
+import { useUser } from '@/hooks';
 
 export const revalidate = 2;
 
 export default async function Profile() {
-  const client = getClient();
-  const { data } = await client.query({
-    query: GET_USER,
-  });
-
-  const { user } = data;
+  const user = await useUser();
 
   return (
     <main>
@@ -20,7 +14,12 @@ export default async function Profile() {
           <TypographyH2>{user.name}</TypographyH2>
           <p>Email: {user.email}</p>
           <p>Email Verified: {user.emailVerified}</p>
-          <img src={user.image} alt={user.name} referrerPolicy={'no-referrer'} />
+          <p>Role: {user.role}</p>
+          <img
+            src={user.image}
+            alt={user.name}
+            referrerPolicy={'no-referrer'}
+          />
         </div>
       </PageWrapper>
     </main>
