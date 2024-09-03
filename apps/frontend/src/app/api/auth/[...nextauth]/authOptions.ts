@@ -39,6 +39,7 @@ export const authOptions: AuthOptions = {
   ],
   session: {
     strategy: 'jwt',
+    maxAge: 24 * 60 * 60, // 1 day
   },
   adapter,
   callbacks: {
@@ -49,7 +50,7 @@ export const authOptions: AuthOptions = {
           id_token: account.id_token,
           access_token: account.access_token,
           expires_at: account.expires_at,
-        });
+        }, '1d');
       }
       return token;
     },
@@ -61,6 +62,6 @@ export const authOptions: AuthOptions = {
   pages: {
     signIn: '/signin',
     signOut: '/signout',
-    error: '/auth/error'
-  }
+    error: '/auth/error',
+  },
 };
