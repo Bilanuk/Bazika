@@ -2,10 +2,14 @@ import Link from 'next/link';
 import { LogoTypography } from '@components/ui/Typography';
 import React from 'react';
 
-const Logo = () => {
+interface LogoProps {
+  collapsed?: boolean;
+}
+
+const Logo: React.FC<LogoProps> = ({ collapsed = false }) => {
   return (
     <Link href={'/'}>
-      <LogoTypography>Bazika</LogoTypography>
+      <LogoTypography>{collapsed ? 'B' : 'Bazika'}</LogoTypography>
     </Link>
   );
 };
