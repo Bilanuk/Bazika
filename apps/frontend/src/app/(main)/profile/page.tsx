@@ -1,6 +1,7 @@
 import PageWrapper from '@components/PageWrapper';
 import { TypographyH2 } from '@components/ui/Typography';
 import { useUser } from '@/hooks';
+import Image from 'next/image';
 
 export const revalidate = 2;
 
@@ -15,7 +16,7 @@ export default async function Profile() {
           <p>Email: {user.email}</p>
           <p>Email Verified: {user.emailVerified}</p>
           <p>Role: {user.role}</p>
-          <img
+          <Image
             src={user.image}
             alt={user.name}
             referrerPolicy={'no-referrer'}

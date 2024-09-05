@@ -6,16 +6,22 @@ const fullConfig = resolveConfig(tailwindConfig);
 const {
   theme: { screens },
 } = fullConfig;
+
 const useBreakpoint = (query: keyof typeof screens): boolean => {
-  const mediaQuery = `(min-width: ${screens[query]})`;
-  const matchQueryList = window.matchMedia(mediaQuery);
   const [isMatch, setMatch] = useState<boolean>(false);
-  const onChange = (e: MediaQueryListEvent) => setMatch(e.matches);
+
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mediaQuery = `(min-width: ${screens[query]})`;
+    const matchQueryList = window.matchMedia(mediaQuery);
+    const onChange = (e: MediaQueryListEvent) => setMatch(e.matches);
+
     setMatch(matchQueryList.matches);
     matchQueryList.addEventListener('change', onChange);
-    return () => matchQueryList.removeEventListener('change', onChange);
+
+    return () => matchQueryList.removeEventListener('change', onChange); // Cleanup
   }, [query]);
+
   return isMatch;
 };
 

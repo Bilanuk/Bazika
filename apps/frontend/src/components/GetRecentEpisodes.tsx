@@ -25,7 +25,7 @@ export default async function GetRecentEpisodes() {
             <CarouselItem
               key={edge.node.id}
               className={
-                'xs:basis-1/2 pl-2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-60'
+                'pl-2 xs:basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-60'
               }
             >
               <EpisodeCard key={edge.node.id} episode={edge.node as Episode} />

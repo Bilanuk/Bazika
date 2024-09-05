@@ -15,7 +15,7 @@ export default async function SerialPage({
   params: { id: string };
 }) {
   const client = getClient();
-  const { data, loading } = await client.query({
+  const { data } = await client.query({
     query: GET_SERIAL,
     variables: { id: params.id },
   });
