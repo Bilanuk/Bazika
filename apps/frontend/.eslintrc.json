@@ -20,5 +20,9 @@
         "project": ["./tsconfig.json"]
       }
     }
-  ]
+  ],
+  "rules": {
+    "linebreak-style": ["error", "unix"],
+    "@typescript-eslint/no-explicit-any": ["off"]
+  }
 }

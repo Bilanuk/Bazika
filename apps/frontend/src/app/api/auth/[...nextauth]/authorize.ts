@@ -45,7 +45,7 @@ export const authorize = async (
 
   // The user may already exist, but maybe it signed up with a different provider. With the next few lines of code
   // we check if the user already had a Google account associated, and if not we create one.
-  let account = await adapter.getUserByAccount!({
+  const account = await adapter.getUserByAccount!({
     provider: 'google',
     providerAccountId: sub,
   });

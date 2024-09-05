@@ -15,7 +15,7 @@ const useBreakpoint = (query: keyof typeof screens): boolean => {
     setMatch(matchQueryList.matches);
     matchQueryList.addEventListener('change', onChange);
     return () => matchQueryList.removeEventListener('change', onChange);
-  }, [query]);
+  }, [query, matchQueryList]);
   return isMatch;
 };
 

@@ -45,12 +45,15 @@ export const authOptions: AuthOptions = {
   callbacks: {
     async jwt({ token, account }) {
       if (account) {
-        token.auth_token = await signJwt({
-          sub: token.sub,
-          id_token: account.id_token,
-          access_token: account.access_token,
-          expires_at: account.expires_at,
-        }, '1d');
+        token.auth_token = await signJwt(
+          {
+            sub: token.sub,
+            id_token: account.id_token,
+            access_token: account.access_token,
+            expires_at: account.expires_at,
+          },
+          '1d'
+        );
       }
       return token;
     },
