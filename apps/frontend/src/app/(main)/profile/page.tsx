@@ -20,6 +20,8 @@ export default async function Profile() {
             src={user.image}
             alt={user.name}
             referrerPolicy={'no-referrer'}
+            width={200}
+            height={200}
           />
         </div>
       </PageWrapper>
