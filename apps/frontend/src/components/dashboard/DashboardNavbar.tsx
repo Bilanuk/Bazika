@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { LucideIcon, MailWarning } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import { MailWarning } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { buttonVariants } from '@components/ui/button';
@@ -10,35 +11,34 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@components/ui/tooltip';
+import { dashboardNavbarLinks } from '@components/dashboard/types';
 
-interface NavProps {
+export function DashboardNavbar({
+  isCollapsed = true,
+}: {
   isCollapsed: boolean;
-  links: {
-    title: string;
-    icon: LucideIcon;
-    variant: 'default' | 'ghost';
-    alert?: boolean;
-  }[];
-}
+}) {
+  const pathname = usePathname();
 
-export function DashboardNav({ links, isCollapsed }: NavProps) {
   return (
     <div
       data-collapsed={isCollapsed}
       className='group flex flex-col gap-4 py-2 data-[collapsed=true]:py-2'
     >
       <nav className='grid gap-1 px-2 group-[[data-collapsed=true]]:justify-center group-[[data-collapsed=true]]:px-2'>
-        {links.map((link, index) =>
-          isCollapsed ? (
+        {dashboardNavbarLinks.map((link, index) => {
+          const isActive = pathname === link.href;
+
+          return isCollapsed ? (
             <Tooltip key={index} delayDuration={0}>
               <TooltipTrigger asChild>
                 <Link
-                  href='#'
+                  href={link.href}
                   className={cn(
-                    buttonVariants({ variant: link.variant, size: 'icon' }),
+                    buttonVariants({ variant: 'ghost', size: 'icon' }),
                     'h-9 w-9',
-                    link.variant === 'default' &&
-                      'dark:bg-muted dark:text-muted-foreground dark:hover:bg-muted dark:hover:text-white'
+                    isActive &&
+                      'bg-muted text-muted-foreground dark:bg-muted dark:text-white'
                   )}
                 >
                   <link.icon className='h-4 w-4' />
@@ -57,30 +57,24 @@ export function DashboardNav({ links, isCollapsed }: NavProps) {
           ) : (
             <Link
               key={index}
-              href='#'
+              href={link.href}
               className={cn(
-                buttonVariants({ variant: link.variant, size: 'sm' }),
-                link.variant === 'default' &&
-                  'dark:bg-muted dark:text-white dark:hover:bg-muted dark:hover:text-white',
-                'justify-start'
+                buttonVariants({ variant: 'ghost', size: 'sm' }),
+                'justify-start',
+                isActive &&
+                  'bg-muted text-muted-foreground dark:bg-muted dark:text-white'
               )}
             >
               <link.icon className='mr-2 h-4 w-4' />
               {link.title}
               {link.alert && (
-                <span
-                  className={cn(
-                    'ml-auto',
-                    link.variant === 'default' &&
-                      'text-background dark:text-white'
-                  )}
-                >
+                <span className='ml-auto text-background dark:text-white'>
                   <MailWarning className='h-4 w-4' />
                 </span>
               )}
             </Link>
-          )
-        )}
+          );
+        })}
       </nav>
     </div>
   );

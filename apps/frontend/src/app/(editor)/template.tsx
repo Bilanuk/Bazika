@@ -10,7 +10,7 @@ export default function AuthTemplate({
 }) {
   return (
     <motion.div
-      initial={{ opacity: 0 }}
+      initial={{ opacity: 1 }}
       animate={{ opacity: 1 }}
       transition={{ ease: 'easeOut', duration: 0.3 }}
     >
