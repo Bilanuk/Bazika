@@ -29,8 +29,8 @@ interface DashboardProps {
 }
 
 export function Dashboard({
-  defaultLayout = [20, 32, 48],
-  defaultCollapsed = false,
+  defaultLayout = [20, 32],
+  defaultCollapsed = true,
   navCollapsedSize,
 }: DashboardProps) {
   const isCompact = !useBreakpoint('md');
@@ -41,8 +41,6 @@ export function Dashboard({
   useEffect(() => {
     setIsCollapsed(defaultCollapsed || isCompact);
   }, [isCompact]);
-
-  console.log('isCompact', isCompact);
 
   return (
     <TooltipProvider delayDuration={0}>
