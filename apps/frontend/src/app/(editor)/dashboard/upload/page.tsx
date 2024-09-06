@@ -1,11 +1,5 @@
-import { FileUploader } from '@components/file-uploader';
-import { StepperWrapper } from '@components/stepper';
+import Uploader from '@components/dashboard/Uploader';
 
 export default function UploadPage() {
-  return (
-    <>
-      <StepperWrapper />
-      <FileUploader />
-    </>
-  );
+  return <Uploader />;
 }
