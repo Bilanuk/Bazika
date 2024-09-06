@@ -15,9 +15,7 @@ export function FileUploader() {
     setFiles(
       acceptedFiles.map((file) =>
         Object.assign(file, {
-          preview: file.type.startsWith('image/')
-            ? URL.createObjectURL(file)
-            : null,
+          preview: URL.createObjectURL(file),
         })
       )
     );
@@ -26,11 +24,10 @@ export function FileUploader() {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      'image/*': ['.jpeg', '.jpg', '.png', '.gif'],
-      'application/pdf': ['.pdf'],
+      'video/*': ['.mp4', '.mkv', '.avi'],
     },
-    maxFiles: 5,
-    maxSize: 5 * 1024 * 1024, // 5MB
+    maxFiles: 1,
+    maxSize: 1024 * 1024 * 1024,
   });
 
   const removeFile = (file: FileWithPreview) => {
@@ -55,7 +52,7 @@ export function FileUploader() {
           Drag 'n' drop some files here, or click to select files
         </p>
         <p className='mt-1 text-xs text-gray-500'>
-          (Only *.jpeg, *.jpg, *.png, *.gif and *.pdf files are accepted)
+          (Only *.mp4, *.mkv, *.avi files are allowed)
         </p>
       </div>
 
