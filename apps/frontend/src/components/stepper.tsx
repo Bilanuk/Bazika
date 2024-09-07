@@ -47,7 +47,7 @@ export function StepperWrapper({ steps }: StepperWrapperProps) {
           disabled={currentStep === 1}
           className={`rounded px-4 py-2 ${
             currentStep === 1
-              ? 'cursor-not-allowed bg-gray-300'
+              ? 'cursor-not-allowed bg-secondary'
               : 'bg-primary text-primary-foreground'
           }`}
         >
@@ -58,7 +58,7 @@ export function StepperWrapper({ steps }: StepperWrapperProps) {
           disabled={currentStep === steps.length}
           className={`rounded px-4 py-2 ${
             currentStep === steps.length
-              ? 'cursor-not-allowed bg-gray-300'
+              ? 'cursor-not-allowed bg-secondary'
               : 'bg-primary text-primary-foreground'
           }`}
         >
