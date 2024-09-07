@@ -1,9 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
+import { LucideIcon } from 'lucide-react';
 
 export interface Step {
-  title: string;
+  icon: React.ReactElement<LucideIcon>;
+  title: React.ReactNode;
   description: string;
   content: React.ReactNode;
 }
@@ -13,7 +15,7 @@ interface StepperWrapperProps {
 }
 
 export function StepperWrapper({ steps }: StepperWrapperProps) {
-  const [currentStep, setCurrentStep] = useState(1); // Start from step 1
+  const [currentStep, setCurrentStep] = useState(1);
 
   const handleNext = () => {
     if (currentStep < steps.length) {
@@ -29,7 +31,7 @@ export function StepperWrapper({ steps }: StepperWrapperProps) {
 
   return (
     <div className='space-y-8 p-8'>
-      <Stepper totalSteps={steps.length} currentStep={currentStep} />
+      <Stepper steps={steps} currentStep={currentStep} />
 
       {/* Dynamic content for each step */}
       <div className='flex flex-col items-center'>
@@ -68,33 +70,38 @@ export function StepperWrapper({ steps }: StepperWrapperProps) {
 }
 
 interface StepperProps {
-  totalSteps: number;
+  steps: Step[];
   currentStep: number;
 }
 
-const Stepper: React.FC<StepperProps> = ({ totalSteps, currentStep }) => {
+const Stepper: React.FC<StepperProps> = ({ steps, currentStep }) => {
   return (
     <div className='mx-auto w-full max-w-3xl'>
       <div className='flex items-center justify-between'>
-        {Array.from({ length: totalSteps }, (_, index) => (
-          <React.Fragment key={index}>
-            <Step number={index + 1} isActive={index + 1 <= currentStep} />
-            {index < totalSteps - 1 && (
-              <Dots isActive={index + 1 < currentStep} />
-            )}
-          </React.Fragment>
-        ))}
+        {Array.from({ length: steps.length }, (_, index) => index).map(
+          (index) => (
+            <React.Fragment key={index}>
+              <Step
+                content={steps[index].icon}
+                isActive={index + 1 <= currentStep}
+              />
+              {index < steps.length - 1 && (
+                <Dots isActive={index + 1 < currentStep} />
+              )}
+            </React.Fragment>
+          )
+        )}
       </div>
     </div>
   );
 };
 
 interface StepProps {
-  number: number;
+  content: React.ReactNode;
   isActive: boolean;
 }
 
-const Step: React.FC<StepProps> = ({ number, isActive }) => {
+const Step: React.FC<StepProps> = ({ content, isActive }) => {
   return (
     <div
       className={`flex h-10 w-10 items-center justify-center rounded-full border-2 ${
@@ -103,7 +110,7 @@ const Step: React.FC<StepProps> = ({ number, isActive }) => {
           : 'border-muted-foreground text-muted-foreground'
       }`}
     >
-      <span className='text-sm font-medium'>{number}</span>
+      <span className='text-sm font-medium'>{content}</span>
     </div>
   );
 };
