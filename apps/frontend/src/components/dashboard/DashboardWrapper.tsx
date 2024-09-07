@@ -13,6 +13,7 @@ import { TooltipProvider } from '@components/ui/tooltip';
 import * as React from 'react';
 import { useEffect } from 'react';
 import useBreakpoint from '@hooks/client/useBreakpoint';
+import ThemeSwitch from '@components/ThemeSwitch';
 
 interface DashboardWrapperProps {
   children: React.ReactNode;
@@ -39,7 +40,7 @@ export default function DashboardWrapper({
             sizes
           )}`;
         }}
-        className='max-h-[800px] min-h-screen items-stretch'
+        className='min-h-screen items-stretch'
       >
         <ResizablePanel
           defaultSize={4}
@@ -59,7 +60,9 @@ export default function DashboardWrapper({
               false
             )}`;
           }}
-          className={cn('min-w-[50px] transition-all duration-300 ease-in-out')}
+          className={cn(
+            'max-h-screen min-w-[50px] transition-all duration-300 ease-in-out'
+          )}
         >
           <div
             className={cn(
@@ -72,6 +75,9 @@ export default function DashboardWrapper({
           <Separator />
           <DashboardNavbar isCollapsed={isCollapsed} />
           <Separator />
+          <div className='my-2 flex max-h-screen items-end justify-center gap-2'>
+            <ThemeSwitch />
+          </div>
         </ResizablePanel>
         <ResizableHandle withHandle />
         <ResizablePanel defaultSize={80}>{children}</ResizablePanel>
