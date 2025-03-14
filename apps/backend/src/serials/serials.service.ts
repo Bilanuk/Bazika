@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Serial } from '@prisma/client';
+import { Serial } from '@database';
 import { SerialsRepository } from '@/serials/serials.repository';
 import { CreateSerialInput } from '@/serials/dto/inputs/create-serial';
 import { UpdateSerialInput } from '@/serials/dto/inputs/update-serial';

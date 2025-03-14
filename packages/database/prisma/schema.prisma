@@ -1,0 +1,119 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/client"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Serial {
+  id          String    @id @default(uuid())
+  title       String
+  description String
+  rating      Float     @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  imageUrl    String    @default("")
+  episodes    Episode[]
+}
+
+model Episode {
+  id            String   @id @default(uuid())
+  title         String
+  url           String
+  serialId      String
+  episodeNumber Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  serial        Serial   @relation(fields: [serialId], references: [id])
+}
+
+model Toilet {
+  id      String   @id @default(uuid())
+  isPaid  Boolean
+  price   Int
+  address Address?
+  reviews Review[]
+}
+
+model Address {
+  id           String @id @default(uuid())
+  streetNumber String
+  street       String
+  city         String
+  country      String
+  toiletId     String @unique
+  toilet       Toilet @relation(fields: [toiletId], references: [id])
+}
+
+model Review {
+  id            String   @id @default(uuid())
+  cleanliness   Float
+  performance   Float
+  description   String?  @db.VarChar(1024)
+  contributedBy String   @unique
+  toiletId      String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  toilet        Toilet   @relation(fields: [toiletId], references: [id])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime? @map("email_verified")
+  image         String?
+  role          UserRole  @default(USER)
+  accounts      Account[]
+  sessions      Session[]
+
+  @@map("users")
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}

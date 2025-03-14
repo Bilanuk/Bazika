@@ -21,7 +21,8 @@
     "paths": {
       "@/*": [
         "src/*"
-      ]
+      ],
+      "@database": ["node_modules/@bazika/db/generated/client"]
     }
   }
 }

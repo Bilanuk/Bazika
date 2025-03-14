@@ -1,15 +1,13 @@
 import type { AuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import { SupabaseAdapter } from '@auth/supabase-adapter';
-import { Adapter } from 'next-auth/adapters';
+import { PrismaAdapter } from '@auth/prisma-adapter';
 import { signJwt } from '@/lib/jwt';
+import type { Adapter } from 'next-auth/adapters';
 import { authorize } from '@app/api/auth/[...nextauth]/authorize';
+import prisma from '@/lib/prisma';
 
-export const adapter = SupabaseAdapter({
-  url: process.env.NEXT_PUBLIC_SUPABASE_URL as string,
-  secret: process.env.SUPABASE_SERVICE_ROLE_KEY as string,
-}) as Adapter;
+export const adapter = PrismaAdapter(prisma) as Adapter;
 
 export const authOptions: AuthOptions = {
   secret: process.env.APP_JWT_SECRET,
