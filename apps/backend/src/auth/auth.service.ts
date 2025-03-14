@@ -11,10 +11,12 @@ export class AuthService {
     private configService: ConfigService,
     private prisma: PrismaService,
   ) {}
+
   async googleLogin(user: GoogleLoginUserDto) {
     if (!user) {
-      throw new UnauthorizedException('No user from google');
+      throw new UnauthorizedException('No user from Google');
     }
+
     const {
       firstName,
       lastName,
@@ -27,12 +29,13 @@ export class AuthService {
       refreshToken,
       id_token,
     } = user;
-    const userData = await this.prisma.users.findFirst({
+
+    const userData = await this.prisma.user.findFirst({
       where: { email },
       include: { accounts: true },
     });
     if (!userData) {
-      const newUserData = await this.prisma.users.create({
+      const newUserData = await this.prisma.user.create({
         data: {
           name: `${firstName} ${lastName}`,
           email: email,

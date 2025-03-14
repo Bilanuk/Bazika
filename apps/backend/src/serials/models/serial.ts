@@ -1,5 +1,5 @@
 import { Field, Float, ObjectType } from '@nestjs/graphql';
-import { Serial as SerialDB } from '@prisma/client';
+import { Serial as SerialDB } from '@database';
 import PaginatedResponse from '@/common/pagination/pagination';
 
 @ObjectType()

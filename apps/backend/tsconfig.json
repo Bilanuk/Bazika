@@ -22,7 +22,7 @@
       "@/*": [
         "src/*"
       ],
-      "@prisma/client": ["@bazika/db/client/*"]
+      "@database": ["node_modules/@bazika/db/generated/client"]
     }
   }
 }

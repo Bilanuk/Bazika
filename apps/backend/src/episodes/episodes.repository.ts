@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Episode, Prisma } from '@prisma/client';
+import { Episode, Prisma } from '@database';
 import { PrismaService } from 'src/database/prisma.service';
 import { PaginationArgs } from '@/common/pagination/pagination.args';
 import { findManyCursorConnection } from '@devoxa/prisma-relay-cursor-connection';

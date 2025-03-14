@@ -1,5 +1,5 @@
 import { Field, Float, ObjectType } from '@nestjs/graphql';
-import { users as UserDB } from '@prisma/client';
+import { User as UserDB } from '@database';
 import PaginatedResponse from '@/common/pagination/pagination';
 
 @ObjectType()

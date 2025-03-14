@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Episode } from '@prisma/client';
+import { Episode } from '@database';
 import { EpisodesRepository } from '@/episodes/episodes.repository';
 import { CreateEpisodeInput } from '@/episodes/dto/inputs/create-episode';
 import { UpdateEpisodeInput } from '@/episodes/dto/inputs/update-episode';
