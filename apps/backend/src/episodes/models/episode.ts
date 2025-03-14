@@ -1,4 +1,4 @@
-import { Field, Float, Int, ObjectType } from '@nestjs/graphql';
+import { Field, Int, ObjectType } from '@nestjs/graphql';
 import { Episode as EpisodeDB } from '@prisma/client';
 import PaginatedResponse from '@/common/pagination/pagination';
 
