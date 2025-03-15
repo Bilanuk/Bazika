@@ -15,7 +15,7 @@ const ButtonContent = () => {
 
 const GoogleSignInButton = () => {
   return (
-    <Button onClick={() => signIn('google')}>
+    <Button onClick={() => signIn('google')} className='w-full'>
       <ButtonContent />
     </Button>
   );

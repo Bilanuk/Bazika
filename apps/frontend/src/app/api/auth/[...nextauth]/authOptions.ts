@@ -6,11 +6,12 @@ import { signJwt } from '@/lib/jwt';
 import type { Adapter } from 'next-auth/adapters';
 import { authorize } from '@app/api/auth/[...nextauth]/authorize';
 import prisma from '@/lib/prisma';
+import { compare } from 'bcryptjs';
 
 export const adapter = PrismaAdapter(prisma) as Adapter;
 
 export const authOptions: AuthOptions = {
-  secret: process.env.APP_JWT_SECRET,
+  secret: process.env.NEXTAUTH_SECRET,
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID,
@@ -24,6 +25,51 @@ export const authOptions: AuthOptions = {
           access_type: 'offline',
           response_type: 'code',
         },
+      },
+    }),
+    CredentialsProvider({
+      id: 'credentials',
+      name: 'Credentials',
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" }
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          throw new Error('Email and password required');
+        }
+
+        const user = await prisma.user.findUnique({
+          where: { email: credentials.email },
+          include: {
+            accounts: {
+              where: {
+                provider: 'credentials'
+              }
+            }
+          }
+        });
+
+        if (!user || !user.accounts.length) {
+          throw new Error('No account found with these credentials');
+        }
+
+        const passwordAccount = user.accounts[0];
+        const isCorrectPassword = await compare(
+          credentials.password,
+          passwordAccount.access_token || ''
+        );
+
+        if (!isCorrectPassword) {
+          throw new Error('Invalid password');
+        }
+
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          image: user.image,
+        };
       },
     }),
     CredentialsProvider({
@@ -64,5 +110,6 @@ export const authOptions: AuthOptions = {
     signIn: '/signin',
     signOut: '/signout',
     error: '/auth/error',
+    newUser: '/',
   },
 };

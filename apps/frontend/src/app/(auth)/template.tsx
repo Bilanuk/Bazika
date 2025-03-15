@@ -13,6 +13,7 @@ export default function AuthTemplate({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ ease: 'easeInOut', duration: 0.5 }}
+      className='flex h-screen w-full items-center justify-center'
     >
       {children}
     </motion.div>
