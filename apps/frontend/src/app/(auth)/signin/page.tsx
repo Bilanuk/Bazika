@@ -21,27 +21,19 @@ export default async function SignInPage() {
         <div className='text-center'>
           <Logo />
         </div>
-        <div className='space-y-8'>
-          <CredentialsSignInForm />
+        <CredentialsSignInForm />
+        <div className='space-y-4'>
           <div className='relative'>
             <div className='absolute inset-0 flex items-center'>
               <span className='w-full border-t' />
             </div>
             <div className='relative flex justify-center text-sm'>
-              <span className='bg-background px-6 text-muted-foreground'>
+              <span className='bg-background px-1 text-muted-foreground'>
                 Or continue with
               </span>
             </div>
           </div>
-          <div>
-            <GoogleSignInButton />
-          </div>
-          <TypographySmall className='text-center'>
-            Don't have an account?{' '}
-            <Link href='/signup' className='underline hover:text-primary'>
-              Sign up
-            </Link>
-          </TypographySmall>
+          <GoogleSignInButton />
         </div>
       </div>
     </div>

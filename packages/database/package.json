@@ -4,17 +4,19 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "db:generate": "prisma generate",
-    "db:push": "prisma db push --skip-generate"
+    "generate": "prisma generate",
+    "push": "prisma db push --skip-generate",
+    "seed": "node --loader ts-node/esm seed.ts"
   },
   "exports": {
     ".": "./src/index.ts"
   },
   "dependencies": {
     "@prisma/client": "5.17.0",
-    "@types/node": "^22.13.10"
+    "ts-node": "^10.9.2"
   },
   "devDependencies": {
+    "@types/node": "^22.13.10",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
     "eslint": "^8.57.0",

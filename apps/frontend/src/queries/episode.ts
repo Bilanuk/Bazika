@@ -2,7 +2,7 @@ import { gql } from '@/__generated__';
 
 export const GET_EPISODES = gql(/* GraphQL */ `
   query GetEpisodes {
-    getEpisodes(first: 10) {
+    getEpisodes(first: 50) {
       pageInfo {
         endCursor
         startCursor
