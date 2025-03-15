@@ -31,7 +31,7 @@ export class EpisodesRepository {
       (args) =>
         this.prisma.episode.findMany({
           where,
-          orderBy: { createdAt: 'asc' },
+          orderBy: { createdAt: 'desc' },
           ...args,
         }),
       () =>
