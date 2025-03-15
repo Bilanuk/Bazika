@@ -1,70 +1,104 @@
 'use client';
 
-import ReactPlayer from 'react-player';
-import { useEffect, useRef, useState } from 'react';
+import { MediaPlayer, MediaProvider } from '@vidstack/react';
+import {
+  defaultLayoutIcons,
+  DefaultVideoLayout,
+} from '@vidstack/react/player/layouts/default';
+import '@vidstack/react/player/styles/default/theme.css';
+import '@vidstack/react/player/styles/default/layouts/video.css';
+import { Episode } from '@/__generated__/graphql';
+import { useState, useEffect, useRef } from 'react';
+import { TypographyH3, TypographyP } from './ui/Typography';
+import { ScrollArea } from './ui/scroll-area';
+import { cn } from '@/lib/utils';
 
 interface VideoPlayerProps {
-  url: string;
+  episodes:
+    | Array<{
+        __typename?: 'EpisodeEdge';
+        node: {
+          __typename?: 'Episode';
+          id: string;
+          title: string;
+          url: string;
+          episodeNumber: number;
+          createdAt: string;
+          updatedAt: string;
+        };
+      }>
+    | null
+    | undefined;
+  initialEpisodeNumber?: string;
 }
 
-export default function VideoPlayer({ url }: VideoPlayerProps) {
-  const videoPlayerRef = useRef<ReactPlayer>(null);
-  const [resolution, setResolution] = useState(0);
-  const [levels, setLevels] = useState([] as any);
+export default function VideoPlayer({ episodes, initialEpisodeNumber }: VideoPlayerProps) {
+  const sortedEpisodes = episodes
+    ?.slice()
+    .sort((a, b) => a.node.episodeNumber - b.node.episodeNumber);
 
-  const [isClient, setIsClient] = useState(false);
+  const initialEpisode = initialEpisodeNumber
+    ? sortedEpisodes?.find(
+        (episode) => episode.node.episodeNumber === parseInt(initialEpisodeNumber)
+      )?.node ?? sortedEpisodes?.[0]?.node
+    : sortedEpisodes?.[0]?.node;
 
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  const initPlayer = () => {
-    console.log(videoPlayerRef?.current?.getInternalPlayer('hls'));
-    console.log(videoPlayerRef?.current);
-    console.log(videoPlayerRef?.current?.getInternalPlayer('hls').levels);
-
-    const internalPlayer = videoPlayerRef.current?.getInternalPlayer('hls');
-    if (internalPlayer) {
-      setResolution(internalPlayer.currentLevel.height);
-      setLevels(internalPlayer.levels);
-    }
-  };
-
-  const onChangeBitrate = (event: any) => {
-    const internalPlayer = videoPlayerRef.current?.getInternalPlayer('hls');
-    if (internalPlayer) {
-      internalPlayer.nextLevel = event.target.value;
-      setResolution(event.target.value);
-    }
-  };
+  const [currentEpisode, setCurrentEpisode] = useState(initialEpisode);
+  const episodeRefs = useRef<{ [key: number]: HTMLButtonElement | null }>({});
 
   useEffect(() => {
-    setResolution(
-      videoPlayerRef.current?.getInternalPlayer('hls')?.currentLevel.height
-    );
-  }, [videoPlayerRef.current?.getInternalPlayer('hls')?.currentLevel]);
+    if (initialEpisodeNumber) {
+      const episodeNumber = parseInt(initialEpisodeNumber);
+      if (isNaN(episodeNumber)) return;
+
+      const episodeRef = episodeRefs.current[episodeNumber];
+      if (episodeRef) {
+        setTimeout(() => {
+          episodeRef.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 100);
+      }
+    }
+  }, [initialEpisodeNumber]);
+
+  if (!sortedEpisodes?.length || !currentEpisode) return null;
 
   return (
-    <>
-      {isClient ? (
-        <>
-          <select onChange={onChangeBitrate} value={resolution}>
-            {levels.map((level: any, id: any) => (
-              <option key={id} value={id}>
-                {level.height}
-              </option>
+    <div className='grid grid-cols-4 gap-4 col-span-4'>
+      <div className='col-span-3'>
+        <MediaPlayer
+          title={currentEpisode.title}
+          src={currentEpisode.url}
+          aspectRatio='16/9'
+        >
+          <MediaProvider />
+          <DefaultVideoLayout icons={defaultLayoutIcons} />
+        </MediaPlayer>
+      </div>
+
+      <div className='col-span-1'>
+        <ScrollArea className='h-[600px] rounded-md border p-4'>
+          <TypographyH3 className='mb-4'>Episodes</TypographyH3>
+          <div className='flex flex-col gap-2'>
+            {sortedEpisodes.map(({ node: episode }) => (
+              <button
+                key={episode.id}
+                ref={el => {
+                  if (el) episodeRefs.current[episode.episodeNumber] = el;
+                }}
+                onClick={() => setCurrentEpisode(episode)}
+                className={cn(
+                  'rounded-lg p-3 text-left transition-colors hover:bg-secondary',
+                  currentEpisode.id === episode.id && 'bg-secondary'
+                )}
+              >
+                <TypographyP>
+                  {episode.episodeNumber} {episode.title}
+                </TypographyP>
+              </button>
             ))}
-          </select>
-          <ReactPlayer
-            ref={videoPlayerRef}
-            onReady={initPlayer}
-            url={url}
-            controls
-          />
-        </>
-      ) : (
-        <h1>Server</h1>
-      )}
-    </>
+          </div>
+        </ScrollArea>
+      </div>
+    </div>
   );
 }

@@ -16,9 +16,12 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "turbo": "^2.0.12",
     "eslint": "^9.0.0",
     "prettier": "^3.2.5",
-    "tsconfig": "^7.0.0"
+    "tsconfig": "^7.0.0",
+    "turbo": "^2.0.12"
+  },
+  "dependencies": {
+    "@vidstack/react": "^0.6.15"
   }
 }

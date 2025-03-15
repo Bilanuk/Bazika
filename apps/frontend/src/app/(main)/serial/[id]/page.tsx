@@ -1,6 +1,6 @@
 import PageWrapper from '@components/PageWrapper';
 import { TypographyH2 } from '@components/ui/Typography';
-import VideoPlayer from '@components/VideoPlayer';
+import VideoPlayer from '@/components/VideoPlayer';
 import Head from 'next/head';
 import Image from 'next/image';
 import { getClient } from '@/lib/client';
@@ -44,19 +44,7 @@ export default async function SerialPage({ params, searchParams }: Props) {
             </div>
           </div>
         </div>
-        <div>
-          <TypographyH2>Episodes</TypographyH2>
-          {episodes.edges?.map((edge) => (
-            <div 
-              key={edge.node.id} 
-              id={`episode-${(edge.node as Episode).episodeNumber}`}
-              className="..."
-            >
-              <TypographyH2>{edge.node.title}</TypographyH2>
-              <VideoPlayer url={edge.node.url} />
-            </div>
-          ))}
-        </div>
+        <VideoPlayer episodes={episodes.edges} initialEpisodeNumber={searchParams.episode} />
       </PageWrapper>
     </main>
   );

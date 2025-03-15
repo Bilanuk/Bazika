@@ -13,6 +13,7 @@ export const GET_SERIAL = gql(/* GraphQL */ `
             id
             title
             url
+            episodeNumber
             createdAt
             updatedAt
           }
