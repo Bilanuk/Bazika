@@ -13,11 +13,11 @@ export class User {
   @Field(() => String)
   email: UserDB['email'];
 
-  @Field(() => Float)
-  emailVerified: UserDB['emailVerified'];
+  @Field(() => Float, { nullable: true })
+  emailVerified?: UserDB['emailVerified'];
 
-  @Field(() => String)
-  image: UserDB['image'];
+  @Field(() => String, { nullable: true })
+  image?: UserDB['image'];
 
   @Field(() => String)
   role: UserDB['role'];

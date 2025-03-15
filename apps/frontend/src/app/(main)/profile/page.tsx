@@ -2,6 +2,9 @@ import PageWrapper from '@components/PageWrapper';
 import { TypographyH2 } from '@components/ui/Typography';
 import { useUser } from '@/hooks';
 import Image from 'next/image';
+import { AvatarImage } from '@/components/ui/avatar';
+import { AvatarFallback } from '@/components/ui/avatar';
+import { Avatar } from '@/components/ui/avatar';
 
 export const revalidate = 2;
 
@@ -16,13 +19,10 @@ export default async function Profile() {
           <p>Email: {user.email}</p>
           <p>Email Verified: {user.emailVerified}</p>
           <p>Role: {user.role}</p>
-          <Image
-            src={user.image}
-            alt={user.name}
-            referrerPolicy={'no-referrer'}
-            width={200}
-            height={200}
-          />
+          <Avatar className='h-80 w-80 rounded-none'>
+            <AvatarImage src={user.image || user.name} alt={user.name} />
+            <AvatarFallback className='rounded-none'>{user.name[0]}</AvatarFallback>
+          </Avatar>
         </div>
       </PageWrapper>
     </main>
