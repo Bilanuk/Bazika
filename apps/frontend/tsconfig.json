@@ -43,7 +43,7 @@
       "@types/*": [
         "./src/types/*"
       ],
-      "@database": ["node_modules/@bazika/db/generated/client"]
+      "@database": ["./node_modules/@bazika/db/generated/client"]
     }
   },
   "include": [

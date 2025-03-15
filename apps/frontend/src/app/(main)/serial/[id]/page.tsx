@@ -2,18 +2,17 @@ import PageWrapper from '@components/PageWrapper';
 import { TypographyH2 } from '@components/ui/Typography';
 import VideoPlayer from '@components/VideoPlayer';
 import Head from 'next/head';
-
 import Image from 'next/image';
 import { getClient } from '@/lib/client';
 import { GET_SERIAL } from '@/queries';
+import { Episode } from '@/__generated__/graphql';
 
-export const revalidate = 2;
-
-export default async function SerialPage({
-  params,
-}: {
+interface Props {
   params: { id: string };
-}) {
+  searchParams: { episode?: string };
+}
+
+export default async function SerialPage({ params, searchParams }: Props) {
   const client = getClient();
   const { data } = await client.query({
     query: GET_SERIAL,
@@ -40,17 +39,21 @@ export default async function SerialPage({
               />
             </div>
             <div className={'col-span-3'}>
-              <TypographyH2>{data.serial.title}</TypographyH2>
-              <p>{data.serial.description}</p>
+              <TypographyH2>{serial.title}</TypographyH2>
+              <p>{serial.description}</p>
             </div>
           </div>
         </div>
         <div>
           <TypographyH2>Episodes</TypographyH2>
-          {episodes.edges?.map((episode) => (
-            <div key={episode.node.id}>
-              <TypographyH2>{episode.node.title}</TypographyH2>
-              <VideoPlayer url={episode.node.url} />
+          {episodes.edges?.map((edge) => (
+            <div 
+              key={edge.node.id} 
+              id={`episode-${(edge.node as Episode).episodeNumber}`}
+              className="..."
+            >
+              <TypographyH2>{edge.node.title}</TypographyH2>
+              <VideoPlayer url={edge.node.url} />
             </div>
           ))}
         </div>
