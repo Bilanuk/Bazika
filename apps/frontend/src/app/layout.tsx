@@ -4,6 +4,7 @@ import './globals.css';
 import Providers from '@/providers/Providers';
 import Script from 'next/script';
 import OneTapComponent from '@components/OneTapComponent';
+import AnimatedIconsBackground from '@/components/AnimatedIconsBackground';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -20,6 +21,7 @@ export default function RootLayout({
       <body className={`${inter.className} min-h-screen`}>
         <Providers>
           <OneTapComponent />
+          <AnimatedIconsBackground />
           {children}
         </Providers>
         <Script
