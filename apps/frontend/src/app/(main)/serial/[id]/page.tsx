@@ -35,7 +35,7 @@ export default async function SerialPage({ params, searchParams }: Props) {
         <title>{serial.title}</title>
       </Head>
       <PageWrapper>
-        <div className='relative col-span-4 mb-8 grid grid-cols-4 gap-8 overflow-hidden rounded-xl bg-background/50 p-8 ring-1 ring-border/5 backdrop-blur-sm before:absolute before:inset-0 before:-translate-y-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-background/10 before:to-transparent'>
+        <div className='col-span-4 mb-8 grid grid-cols-4 gap-8 relative overflow-hidden rounded-xl backdrop-blur-sm bg-background/30 p-8 ring-1 ring-border/5'>
           <div className='col-span-1'>
             <div className='relative aspect-[2/3] w-full'>
               <Image
