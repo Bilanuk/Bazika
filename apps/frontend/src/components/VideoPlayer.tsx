@@ -45,6 +45,7 @@ export default function VideoPlayer({ episodes, initialEpisodeNumber }: VideoPla
 
   const [currentEpisode, setCurrentEpisode] = useState(initialEpisode);
   const episodeRefs = useRef<{ [key: number]: HTMLButtonElement | null }>({});
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (initialEpisodeNumber) {
@@ -52,10 +53,18 @@ export default function VideoPlayer({ episodes, initialEpisodeNumber }: VideoPla
       if (isNaN(episodeNumber)) return;
 
       const episodeRef = episodeRefs.current[episodeNumber];
-      if (episodeRef) {
-        setTimeout(() => {
-          episodeRef.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }, 100);
+      if (episodeRef && scrollAreaRef.current) {
+        const scrollArea = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+        if (scrollArea) {
+          const episodeTop = episodeRef.offsetTop;
+          const scrollAreaHeight = scrollArea.clientHeight;
+          const scrollPosition = episodeTop - scrollAreaHeight / 2 + episodeRef.clientHeight / 2;
+          
+          scrollArea.scrollTo({
+            top: scrollPosition,
+            behavior: 'smooth'
+          });
+        }
       }
     }
   }, [initialEpisodeNumber]);
@@ -63,7 +72,7 @@ export default function VideoPlayer({ episodes, initialEpisodeNumber }: VideoPla
   if (!sortedEpisodes?.length || !currentEpisode) return null;
 
   return (
-    <div className='grid grid-cols-4 gap-4 col-span-4'>
+    <div className='grid grid-cols-4 col-span-4'>
       <div className='col-span-3'>
         <MediaPlayer
           title={currentEpisode.title}
@@ -76,7 +85,7 @@ export default function VideoPlayer({ episodes, initialEpisodeNumber }: VideoPla
       </div>
 
       <div className='col-span-1'>
-        <ScrollArea className='h-[600px] rounded-md border p-4'>
+        <ScrollArea ref={scrollAreaRef} className='h-[600px] rounded-md border p-4'>
           <TypographyH3 className='mb-4'>Episodes</TypographyH3>
           <div className='flex flex-col gap-2'>
             {sortedEpisodes.map(({ node: episode }) => (

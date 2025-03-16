@@ -7,6 +7,7 @@ export const GET_SERIAL = gql(/* GraphQL */ `
       title
       imageUrl
       description
+      rating
       episodes {
         edges {
           node {
