@@ -13,8 +13,9 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
 COPY packages/database ./packages/database
 COPY apps/backend ./apps/backend
 
-# Install dependencies
+# Install dependencies and link workspace packages
 RUN --mount=type=cache,id=pnpm,target=~/.pnpm-store pnpm install --frozen-lockfile
+RUN pnpm link --global
 
 # Build the app
 RUN turbo run build --filter=backend
