@@ -1,22 +1,21 @@
-FROM node:21-alpine AS alpine
-
-FROM alpine as base
+FROM node:21-alpine AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
+ENV PNPM_STORE_PATH="/pnpm/store"
+
 RUN corepack enable
+RUN corepack prepare pnpm@9.6.0 --activate
+RUN pnpm config set store-dir $PNPM_STORE_PATH --global
 RUN pnpm install turbo --global
 
 FROM base AS builder
 RUN apk add --no-cache libc6-compat
-RUN apk update
 WORKDIR /app
 COPY . .
-RUN pnpm install turbo --global
 RUN turbo prune --scope=frontend --docker
 
 FROM base AS installer
 RUN apk add --no-cache libc6-compat
-RUN apk update
 WORKDIR /app
 
 COPY .gitignore .gitignore
@@ -24,16 +23,14 @@ RUN mkdir -p out
 COPY --from=builder /app/out/json/ .
 COPY --from=builder /app/out/pnpm-lock.yaml ./pnpm-lock.yaml
 COPY --from=builder /app/out/pnpm-workspace.yaml ./pnpm-workspace.yaml
-RUN pnpm install
 
+RUN pnpm install
 COPY --from=builder /app/out/full/ .
 COPY turbo.json turbo.json
-
 RUN turbo run build --filter=frontend
 
-FROM alpine AS runner
+FROM base AS runner
 WORKDIR /app
-
 RUN apk add --no-cache curl
 
 # Don't run production as root
@@ -49,5 +46,4 @@ COPY --from=installer --chown=nextjs:nodejs /app/apps/frontend/.next/static ./ap
 COPY --from=installer --chown=nextjs:nodejs /app/apps/frontend/public ./apps/frontend/public
 
 EXPOSE 3000
-
 CMD node apps/frontend/server.js

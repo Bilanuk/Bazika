@@ -21,7 +21,7 @@ export default function RootLayout({
       <body className={`${inter.className} min-h-screen`}>
         <Providers>
           <OneTapComponent />
-          <AnimatedIconsBackground />
+          {/* <AnimatedIconsBackground /> */}
           {children}
         </Providers>
         <Script

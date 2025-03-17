@@ -10,14 +10,19 @@ interface RatingProps {
   readonly?: boolean;
 }
 
-export function Rating({ value, max = 5, className, readonly = true }: RatingProps) {
+export function Rating({
+  value,
+  max = 5,
+  className,
+  readonly = true,
+}: RatingProps) {
   return (
     <div className={cn('flex items-center gap-1', className)}>
       {[...Array(max)].map((_, index) => (
         <Star
           key={index}
           className={cn(
-            'w-5 h-5',
+            'h-5 w-5',
             index < value
               ? 'fill-yellow-400 text-yellow-400'
               : 'fill-none text-muted-foreground'
@@ -26,4 +31,4 @@ export function Rating({ value, max = 5, className, readonly = true }: RatingPro
       ))}
     </div>
   );
-} 
+}

@@ -32,14 +32,18 @@ interface VideoPlayerProps {
   initialEpisodeNumber?: string;
 }
 
-export default function VideoPlayer({ episodes, initialEpisodeNumber }: VideoPlayerProps) {
+export default function VideoPlayer({
+  episodes,
+  initialEpisodeNumber,
+}: VideoPlayerProps) {
   const sortedEpisodes = episodes
     ?.slice()
     .sort((a, b) => a.node.episodeNumber - b.node.episodeNumber);
 
   const initialEpisode = initialEpisodeNumber
     ? sortedEpisodes?.find(
-        (episode) => episode.node.episodeNumber === parseInt(initialEpisodeNumber)
+        (episode) =>
+          episode.node.episodeNumber === parseInt(initialEpisodeNumber)
       )?.node ?? sortedEpisodes?.[0]?.node
     : sortedEpisodes?.[0]?.node;
 
@@ -54,15 +58,18 @@ export default function VideoPlayer({ episodes, initialEpisodeNumber }: VideoPla
 
       const episodeRef = episodeRefs.current[episodeNumber];
       if (episodeRef && scrollAreaRef.current) {
-        const scrollArea = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+        const scrollArea = scrollAreaRef.current.querySelector(
+          '[data-radix-scroll-area-viewport]'
+        );
         if (scrollArea) {
           const episodeTop = episodeRef.offsetTop;
           const scrollAreaHeight = scrollArea.clientHeight;
-          const scrollPosition = episodeTop - scrollAreaHeight / 2 + episodeRef.clientHeight / 2;
-          
+          const scrollPosition =
+            episodeTop - scrollAreaHeight / 2 + episodeRef.clientHeight / 2;
+
           scrollArea.scrollTo({
             top: scrollPosition,
-            behavior: 'smooth'
+            behavior: 'smooth',
           });
         }
       }
@@ -72,7 +79,7 @@ export default function VideoPlayer({ episodes, initialEpisodeNumber }: VideoPla
   if (!sortedEpisodes?.length || !currentEpisode) return null;
 
   return (
-    <div className='grid grid-cols-4 col-span-4'>
+    <div className='col-span-4 grid grid-cols-4'>
       <div className='col-span-3'>
         <MediaPlayer
           title={currentEpisode.title}
@@ -85,13 +92,16 @@ export default function VideoPlayer({ episodes, initialEpisodeNumber }: VideoPla
       </div>
 
       <div className='col-span-1'>
-        <ScrollArea ref={scrollAreaRef} className='h-[600px] rounded-md border p-4'>
+        <ScrollArea
+          ref={scrollAreaRef}
+          className='h-[600px] rounded-md border p-4'
+        >
           <TypographyH3 className='mb-4'>Episodes</TypographyH3>
           <div className='flex flex-col gap-2'>
             {sortedEpisodes.map(({ node: episode }) => (
               <button
                 key={episode.id}
-                ref={el => {
+                ref={(el) => {
                   if (el) episodeRefs.current[episode.episodeNumber] = el;
                 }}
                 onClick={() => setCurrentEpisode(episode)}

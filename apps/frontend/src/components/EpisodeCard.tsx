@@ -16,9 +16,9 @@ export default function EpisodeCard({ episode }: SerialCardProps) {
     <Link
       href={{
         pathname: `/serial/${episode.serialId}`,
-        query: { episode: episode.episodeNumber }
+        query: { episode: episode.episodeNumber },
       }}
-      className="block"
+      className='block'
     >
       <Card className='ml-2 transition duration-300 ease-in-out hover:bg-secondary'>
         <CardHeader className='aspect-[3/4] p-3'>

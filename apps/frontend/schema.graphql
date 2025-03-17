@@ -1,113 +1,130 @@
 # This file was generated. Do not edit manually.
 
 schema {
-    query: Query
-    mutation: Mutation
+  query: Query
+  mutation: Mutation
 }
 
 type Episode {
-    createdAt: String!
-    id: String!
-    serial: Serial!
-    serialId: String!
-    title: String!
-    updatedAt: String!
-    url: String!
+  createdAt: String!
+  id: String!
+  serial: Serial!
+  serialId: String!
+  title: String!
+  updatedAt: String!
+  url: String!
 }
 
 type EpisodeConnection {
-    edges: [EpisodeEdge!]
-    nodes: [Episode!]
-    pageInfo: PageInfo!
-    totalCount: Int!
+  edges: [EpisodeEdge!]
+  nodes: [Episode!]
+  pageInfo: PageInfo!
+  totalCount: Int!
 }
 
 type EpisodeEdge {
-    cursor: String!
-    node: Episode!
+  cursor: String!
+  node: Episode!
 }
 
 type Mutation {
-    createEpisode(createEpisodeData: CreateEpisodeInput!): Episode!
-    createSerial(createSerialData: CreateSerialInput!): Serial!
-    deleteEpisode(id: String!): Episode!
-    deleteSerial(id: String!): Serial!
-    updateEpisode(updateEpisodeData: UpdateEpisodeInput!): Episode!
-    updateSerial(updateSerialData: UpdateSerialInput!): Serial!
+  createEpisode(createEpisodeData: CreateEpisodeInput!): Episode!
+  createSerial(createSerialData: CreateSerialInput!): Serial!
+  deleteEpisode(id: String!): Episode!
+  deleteSerial(id: String!): Serial!
+  updateEpisode(updateEpisodeData: UpdateEpisodeInput!): Episode!
+  updateSerial(updateSerialData: UpdateSerialInput!): Serial!
 }
 
 type PageInfo {
-    endCursor: String
-    hasNextPage: Boolean!
-    hasPreviousPage: Boolean!
-    startCursor: String
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
 }
 
 type Query {
-    episode(id: String, serialId: String): Episode!
-    getEpisodes(after: String, before: String, first: Float, last: Float, query: String): EpisodeConnection!
-    getSerials(after: String, before: String, first: Float, last: Float, query: String): SerialConnection!
-    serial(id: String!): Serial!
-    user: User!
+  episode(id: String, serialId: String): Episode!
+  getEpisodes(
+    after: String
+    before: String
+    first: Float
+    last: Float
+    query: String
+  ): EpisodeConnection!
+  getSerials(
+    after: String
+    before: String
+    first: Float
+    last: Float
+    query: String
+  ): SerialConnection!
+  serial(id: String!): Serial!
+  user: User!
 }
 
 type Serial {
-    description: String!
-    episodes(after: String, before: String, first: Float, last: Float): EpisodeConnection!
-    id: String!
-    imageUrl: String!
-    rating: Float!
-    title: String!
+  description: String!
+  episodes(
+    after: String
+    before: String
+    first: Float
+    last: Float
+  ): EpisodeConnection!
+  id: String!
+  imageUrl: String!
+  rating: Float!
+  title: String!
 }
 
 type SerialConnection {
-    edges: [SerialEdge!]
-    nodes: [Serial!]
-    pageInfo: PageInfo!
-    totalCount: Int!
+  edges: [SerialEdge!]
+  nodes: [Serial!]
+  pageInfo: PageInfo!
+  totalCount: Int!
 }
 
 type SerialEdge {
-    cursor: String!
-    node: Serial!
+  cursor: String!
+  node: Serial!
 }
 
 type User {
-    email: String!
-    emailVerified: Float!
-    id: String!
-    image: String!
-    name: String!
+  email: String!
+  emailVerified: Float!
+  id: String!
+  image: String!
+  name: String!
 }
 
 type UserEdge {
-    cursor: String!
-    node: User!
+  cursor: String!
+  node: User!
 }
 
 input CreateEpisodeInput {
-    serialId: String!
-    title: String!
-    url: String!
+  serialId: String!
+  title: String!
+  url: String!
 }
 
 input CreateSerialInput {
-    description: String!
-    imageUrl: String!
-    rating: Float! = 0.0
-    title: String!
+  description: String!
+  imageUrl: String!
+  rating: Float! = 0.0
+  title: String!
 }
 
 input UpdateEpisodeInput {
-    id: String!
-    title: String
-    url: String
+  id: String!
+  title: String
+  url: String
 }
 
 input UpdateSerialInput {
-    description: String
-    id: String!
-    imageUrl: String
-    rating: Float
-    title: String
+  description: String
+  id: String!
+  imageUrl: String
+  rating: Float
+  title: String
 }

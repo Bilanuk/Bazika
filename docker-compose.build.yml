@@ -4,14 +4,16 @@ services:
     build:
       context: .
       dockerfile: apps/frontend/Dockerfile
+      platform: linux/amd64
     ports:
       - "3000:3000"
 
   backend:
     image: bazika-backend:latest
     build:
-        context: .
-        dockerfile: apps/backend/Dockerfile
+      context: .
+      dockerfile: apps/backend/Dockerfile
+      platform: linux/amd64
     ports:
       - "4001:4001"
 
@@ -20,6 +22,7 @@ services:
     build:
       context: nginx
       dockerfile: Dockerfile
+      platform: linux/amd64
     environment:
       - DOMAIN_NAME=test.bazika.com
       - APP_URL=http://frontend:3000

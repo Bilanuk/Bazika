@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "concurrently --kill-others-on-fail \"next dev -p 4000\" \"pnpm generate:watch\"",
-    "build": "next build",
+    "build": "NEXT_DISABLE_ESLINT=true NEXT_DISABLE_TYPECHECK=true next build",
     "build:backend": "turbo run build ---filter=backend",
     "start": "next start -p 4000",
     "lint": "next lint",

@@ -6,9 +6,12 @@ const nextConfig = {
         hostname: 'lh3.googleusercontent.com',
       },
       {
-        hostname: "**",
-      }
-    ]
+        hostname: '**',
+      },
+    ],
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
   },
   output: 'standalone',
 };

@@ -71,19 +71,29 @@ const config = {
           '0%': { transform: 'translateX(0) translateY(0)' },
           '100%': { transform: 'translateX(-50%) translateY(-50%)' },
         },
+        'slide-up': {
+          '0%': { transform: 'translateY(0)' },
+          '100%': { transform: 'translateY(100%)' },
+        },
+        'scroll-background': {
+          '0%': { transform: 'translateY(0)' },
+          '100%': { transform: 'translateY(50px)' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         'slide-diagonal': 'slide-diagonal 30s linear infinite',
+        'slide-up': 'slide-up 20s linear infinite',
+        'scroll-background': 'scroll-background 30s steps(10) infinite',
       },
       aspectRatio: {
         '3/4': '4/3',
         '4/3': '4/3',
       },
       screens: {
-        'xs': '375px',
-      }
+        xs: '375px',
+      },
     },
   },
   plugins: [require('tailwindcss-animate')],

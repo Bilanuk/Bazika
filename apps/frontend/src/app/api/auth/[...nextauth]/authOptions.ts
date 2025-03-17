@@ -31,8 +31,8 @@ export const authOptions: AuthOptions = {
       id: 'credentials',
       name: 'Credentials',
       credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" }
+        email: { label: 'Email', type: 'email' },
+        password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
@@ -44,10 +44,10 @@ export const authOptions: AuthOptions = {
           include: {
             accounts: {
               where: {
-                provider: 'credentials'
-              }
-            }
-          }
+                provider: 'credentials',
+              },
+            },
+          },
         });
 
         if (!user || !user.accounts.length) {

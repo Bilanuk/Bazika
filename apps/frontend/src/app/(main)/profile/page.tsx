@@ -21,7 +21,9 @@ export default async function Profile() {
           <p>Role: {user.role}</p>
           <Avatar className='h-80 w-80 rounded-none'>
             <AvatarImage src={user.image || user.name} alt={user.name} />
-            <AvatarFallback className='rounded-none'>{user.name[0]}</AvatarFallback>
+            <AvatarFallback className='rounded-none'>
+              {user.name[0]}
+            </AvatarFallback>
           </Avatar>
         </div>
       </PageWrapper>

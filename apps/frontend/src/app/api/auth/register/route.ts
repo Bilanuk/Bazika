@@ -60,14 +60,10 @@ export async function POST(req: Request) {
         id: user.id,
         email: user.email,
         name: user.name,
-      }
+      },
     });
-
   } catch (error) {
     console.error('Registration error:', error);
-    return NextResponse.json(
-      { error: 'Error creating user' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Error creating user' }, { status: 500 });
   }
-} 
+}

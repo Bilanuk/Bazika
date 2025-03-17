@@ -1,4 +1,4 @@
-import { CodegenConfig } from '@graphql-codegen/cli'
+import { CodegenConfig } from '@graphql-codegen/cli';
 
 const config: CodegenConfig = {
   schema: 'http://localhost:4001/graphql',
@@ -13,11 +13,11 @@ const config: CodegenConfig = {
       config: {
         fetcher: {
           endpoint: 'process.env.NEXT_PUBLIC_API_URL',
-        }
-      }
+        },
+      },
     },
   },
   ignoreNoDocuments: true,
-}
+};
 
-export default config
+export default config;
