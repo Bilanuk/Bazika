@@ -23,6 +23,12 @@ jobs:
         run: |
           envsubst < .env.envsubst > .env.local
 
+      - name: Allow insecure Docker registry
+        run: |
+          sudo mkdir -p /etc/docker
+          echo '{"insecure-registries": ["213.109.237.185:5000"]}' | sudo tee -a /etc/docker/daemon.json
+          sudo systemctl restart docker
+
       - name: Build, tag, and push images to self-hosted registry
         id: build-image
         env:
