@@ -29,12 +29,10 @@ jobs:
           REGISTRY: 213.109.237.185:5000
           IMAGE_TAG: latest
         run: |
-          docker compose -f docker-compose.build.yml build frontend backend nginx
+          docker compose -f docker-compose.build.yml build frontend nginx
 
           docker tag bazika-frontend:latest $REGISTRY/bazika-frontend:$IMAGE_TAG
-          docker tag bazika-backend:latest $REGISTRY/bazika-backend:$IMAGE_TAG
           docker tag bazika-ingress:latest $REGISTRY/bazika-ingress:$IMAGE_TAG
 
           docker push $REGISTRY/bazika-frontend:$IMAGE_TAG
-          docker push $REGISTRY/bazika-backend:$IMAGE_TAG
           docker push $REGISTRY/bazika-ingress:$IMAGE_TAG
