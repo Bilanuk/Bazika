@@ -12,16 +12,23 @@ FROM base AS builder
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Copy root workspace files
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
-COPY packages/database ./packages/database
-COPY apps/frontend ./apps/frontend
+# Copy all files (including the root package.json)
+COPY . .
 
-# Install dependencies and link workspace packages
+# Generate a partial monorepo with a pruned lockfile for frontend
+RUN turbo prune frontend --docker
+
+# Add lockfile and package.json's of isolated subworkspace
+FROM base AS installer
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+
+# First install the dependencies (as they change less often)
+COPY --from=builder /app/out/json/ .
 RUN pnpm install --frozen-lockfile
-RUN pnpm link --global
 
-# Build the app
+# Build the project
+COPY --from=builder /app/out/full/ .
 RUN pnpm turbo run build --filter=frontend
 
 FROM base AS runner
@@ -33,12 +40,12 @@ RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 USER nextjs
 
-COPY --from=builder /app/apps/frontend/next.config.mjs .
-COPY --from=builder /app/apps/frontend/package.json .
+COPY --from=installer /app/apps/frontend/next.config.mjs .
+COPY --from=installer /app/apps/frontend/package.json .
 
-COPY --from=builder --chown=nextjs:nodejs /app/apps/frontend/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/apps/frontend/.next/static ./apps/frontend/.next/static
-COPY --from=builder --chown=nextjs:nodejs /app/apps/frontend/public ./apps/frontend/public
+COPY --from=installer --chown=nextjs:nodejs /app/apps/frontend/.next/standalone ./
+COPY --from=installer --chown=nextjs:nodejs /app/apps/frontend/.next/static ./apps/frontend/.next/static
+COPY --from=installer --chown=nextjs:nodejs /app/apps/frontend/public ./apps/frontend/public
 
 EXPOSE 3000
 CMD node apps/frontend/server.js
