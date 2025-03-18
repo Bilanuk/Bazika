@@ -4,9 +4,9 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "generate": "prisma generate",
-    "push": "prisma db push --skip-generate",
-    "seed": "node --loader ts-node/esm seed.ts"
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push --skip-generate",
+    "db:seed": "node --loader ts-node/esm seed.ts"
   },
   "exports": {
     ".": "./src/index.ts"
