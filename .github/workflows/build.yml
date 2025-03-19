@@ -44,3 +44,17 @@ jobs:
           docker push $REGISTRY/bazika-frontend:$IMAGE_TAG
           docker push $REGISTRY/bazika-backend:$IMAGE_TAG
           docker push $REGISTRY/bazika-ingress:$IMAGE_TAG
+
+      - name: Install sshpass
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y sshpass
+
+      - name: Deploy to Server
+        run: |
+          sshpass -p "${{ secrets.SERVER_PASSWORD }}" ssh -o StrictHostKeyChecking=no roma@213.109.237.185 '
+            cd /home/roma/Bazika && \
+            docker compose pull && \
+            docker compose up -d && \
+            docker system prune -f
+          '

@@ -8,7 +8,6 @@ import { GET_SERIAL } from '@/queries';
 import { Rating } from '@/components/ui/Rating';
 import { Badge } from '@/components/ui/badge';
 import { Eye } from 'lucide-react';
-import PageSeparator from '@/components/PageSeparator';
 
 interface Props {
   params: { id: string };
@@ -68,6 +67,8 @@ export default async function SerialPage({ params, searchParams }: Props) {
             <div className='flex items-center gap-2 text-muted-foreground'>
               <Eye className='h-4 w-4' />
               <span>{viewCount.toLocaleString()} views</span>
+              <span>•</span>
+              <span>{episodes.edges?.length || 0} episodes</span>
             </div>
 
             <div className='space-y-2'>
@@ -79,9 +80,6 @@ export default async function SerialPage({ params, searchParams }: Props) {
 
             <div className='space-y-2'>
               <TypographyH4>Episodes</TypographyH4>
-              <p className='text-muted-foreground'>
-                {episodes.edges?.length || 0} episodes available
-              </p>
             </div>
           </div>
         </div>

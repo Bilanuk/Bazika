@@ -2,31 +2,18 @@
 import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
-export type Exact<T extends { [key: string]: unknown }> = {
-  [K in keyof T]: T[K];
-};
-export type MakeOptional<T, K extends keyof T> = Omit<T, K> & {
-  [SubKey in K]?: Maybe<T[SubKey]>;
-};
-export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & {
-  [SubKey in K]: Maybe<T[SubKey]>;
-};
-export type MakeEmpty<
-  T extends { [key: string]: unknown },
-  K extends keyof T,
-> = { [_ in K]?: never };
-export type Incremental<T> =
-  | T
-  | {
-      [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never;
-    };
+export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
+export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
+export type MakeEmpty<T extends { [key: string]: unknown }, K extends keyof T> = { [_ in K]?: never };
+export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
-  ID: { input: string; output: string };
-  String: { input: string; output: string };
-  Boolean: { input: boolean; output: boolean };
-  Int: { input: number; output: number };
-  Float: { input: number; output: number };
+  ID: { input: string; output: string; }
+  String: { input: string; output: string; }
+  Boolean: { input: boolean; output: boolean; }
+  Int: { input: number; output: number; }
+  Float: { input: number; output: number; }
 };
 
 export type CreateEpisodeInput = {
@@ -78,25 +65,31 @@ export type Mutation = {
   updateSerial: Serial;
 };
 
+
 export type MutationCreateEpisodeArgs = {
   createEpisodeData: CreateEpisodeInput;
 };
+
 
 export type MutationCreateSerialArgs = {
   createSerialData: CreateSerialInput;
 };
 
+
 export type MutationDeleteEpisodeArgs = {
   id: Scalars['String']['input'];
 };
+
 
 export type MutationDeleteSerialArgs = {
   id: Scalars['String']['input'];
 };
 
+
 export type MutationUpdateEpisodeArgs = {
   updateEpisodeData: UpdateEpisodeInput;
 };
+
 
 export type MutationUpdateSerialArgs = {
   updateSerialData: UpdateSerialInput;
@@ -119,10 +112,12 @@ export type Query = {
   user: User;
 };
 
+
 export type QueryEpisodeArgs = {
   id?: InputMaybe<Scalars['String']['input']>;
   serialId?: InputMaybe<Scalars['String']['input']>;
 };
+
 
 export type QueryGetEpisodesArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
@@ -132,6 +127,7 @@ export type QueryGetEpisodesArgs = {
   query?: InputMaybe<Scalars['String']['input']>;
 };
 
+
 export type QueryGetSerialsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   before?: InputMaybe<Scalars['String']['input']>;
@@ -139,6 +135,7 @@ export type QueryGetSerialsArgs = {
   last?: InputMaybe<Scalars['Float']['input']>;
   query?: InputMaybe<Scalars['String']['input']>;
 };
+
 
 export type QuerySerialArgs = {
   id: Scalars['String']['input'];
@@ -153,6 +150,7 @@ export type Serial = {
   rating: Scalars['Float']['output'];
   title: Scalars['String']['output'];
 };
+
 
 export type SerialEpisodesArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
@@ -205,361 +203,24 @@ export type UserEdge = {
   node: User;
 };
 
-export type GetEpisodesQueryVariables = Exact<{ [key: string]: never }>;
+export type GetEpisodesQueryVariables = Exact<{ [key: string]: never; }>;
 
-export type GetEpisodesQuery = {
-  __typename?: 'Query';
-  getEpisodes: {
-    __typename?: 'EpisodeConnection';
-    totalCount: number;
-    pageInfo: {
-      __typename?: 'PageInfo';
-      endCursor?: string | null;
-      startCursor?: string | null;
-      hasNextPage: boolean;
-      hasPreviousPage: boolean;
-    };
-    edges?: Array<{
-      __typename?: 'EpisodeEdge';
-      node: {
-        __typename?: 'Episode';
-        id: string;
-        title: string;
-        url: string;
-        createdAt: string;
-        updatedAt: string;
-        episodeNumber: number;
-        serialId: string;
-        serial: {
-          __typename?: 'Serial';
-          id: string;
-          title: string;
-          imageUrl: string;
-          description: string;
-          rating: number;
-        };
-      };
-    }> | null;
-  };
-};
+
+export type GetEpisodesQuery = { __typename?: 'Query', getEpisodes: { __typename?: 'EpisodeConnection', totalCount: number, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean }, edges?: Array<{ __typename?: 'EpisodeEdge', node: { __typename?: 'Episode', id: string, title: string, url: string, createdAt: string, updatedAt: string, episodeNumber: number, serialId: string, serial: { __typename?: 'Serial', id: string, title: string, imageUrl: string, description: string, rating: number } } }> | null } };
 
 export type GetSerialQueryVariables = Exact<{
   id: Scalars['String']['input'];
 }>;
 
-export type GetSerialQuery = {
-  __typename?: 'Query';
-  serial: {
-    __typename?: 'Serial';
-    id: string;
-    title: string;
-    imageUrl: string;
-    description: string;
-    rating: number;
-    episodes: {
-      __typename?: 'EpisodeConnection';
-      edges?: Array<{
-        __typename?: 'EpisodeEdge';
-        node: {
-          __typename?: 'Episode';
-          id: string;
-          title: string;
-          url: string;
-          episodeNumber: number;
-          createdAt: string;
-          updatedAt: string;
-        };
-      }> | null;
-    };
-  };
-};
 
-export type GetUserQueryVariables = Exact<{ [key: string]: never }>;
+export type GetSerialQuery = { __typename?: 'Query', serial: { __typename?: 'Serial', id: string, title: string, imageUrl: string, description: string, rating: number, episodes: { __typename?: 'EpisodeConnection', edges?: Array<{ __typename?: 'EpisodeEdge', node: { __typename?: 'Episode', id: string, title: string, url: string, episodeNumber: number, createdAt: string, updatedAt: string } }> | null } } };
 
-export type GetUserQuery = {
-  __typename?: 'Query';
-  user: {
-    __typename?: 'User';
-    id: string;
-    name: string;
-    email: string;
-    emailVerified?: number | null;
-    image?: string | null;
-    role: string;
-  };
-};
+export type GetUserQueryVariables = Exact<{ [key: string]: never; }>;
 
-export const GetEpisodesDocument = {
-  kind: 'Document',
-  definitions: [
-    {
-      kind: 'OperationDefinition',
-      operation: 'query',
-      name: { kind: 'Name', value: 'GetEpisodes' },
-      selectionSet: {
-        kind: 'SelectionSet',
-        selections: [
-          {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'getEpisodes' },
-            arguments: [
-              {
-                kind: 'Argument',
-                name: { kind: 'Name', value: 'first' },
-                value: { kind: 'IntValue', value: '25' },
-              },
-            ],
-            selectionSet: {
-              kind: 'SelectionSet',
-              selections: [
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'pageInfo' },
-                  selectionSet: {
-                    kind: 'SelectionSet',
-                    selections: [
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'endCursor' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'startCursor' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'hasNextPage' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'hasPreviousPage' },
-                      },
-                    ],
-                  },
-                },
-                { kind: 'Field', name: { kind: 'Name', value: 'totalCount' } },
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'edges' },
-                  selectionSet: {
-                    kind: 'SelectionSet',
-                    selections: [
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'node' },
-                        selectionSet: {
-                          kind: 'SelectionSet',
-                          selections: [
-                            {
-                              kind: 'Field',
-                              name: { kind: 'Name', value: 'id' },
-                            },
-                            {
-                              kind: 'Field',
-                              name: { kind: 'Name', value: 'title' },
-                            },
-                            {
-                              kind: 'Field',
-                              name: { kind: 'Name', value: 'url' },
-                            },
-                            {
-                              kind: 'Field',
-                              name: { kind: 'Name', value: 'createdAt' },
-                            },
-                            {
-                              kind: 'Field',
-                              name: { kind: 'Name', value: 'updatedAt' },
-                            },
-                            {
-                              kind: 'Field',
-                              name: { kind: 'Name', value: 'episodeNumber' },
-                            },
-                            {
-                              kind: 'Field',
-                              name: { kind: 'Name', value: 'serialId' },
-                            },
-                            {
-                              kind: 'Field',
-                              name: { kind: 'Name', value: 'serial' },
-                              selectionSet: {
-                                kind: 'SelectionSet',
-                                selections: [
-                                  {
-                                    kind: 'Field',
-                                    name: { kind: 'Name', value: 'id' },
-                                  },
-                                  {
-                                    kind: 'Field',
-                                    name: { kind: 'Name', value: 'title' },
-                                  },
-                                  {
-                                    kind: 'Field',
-                                    name: { kind: 'Name', value: 'imageUrl' },
-                                  },
-                                  {
-                                    kind: 'Field',
-                                    name: {
-                                      kind: 'Name',
-                                      value: 'description',
-                                    },
-                                  },
-                                  {
-                                    kind: 'Field',
-                                    name: { kind: 'Name', value: 'rating' },
-                                  },
-                                ],
-                              },
-                            },
-                          ],
-                        },
-                      },
-                    ],
-                  },
-                },
-              ],
-            },
-          },
-        ],
-      },
-    },
-  ],
-} as unknown as DocumentNode<GetEpisodesQuery, GetEpisodesQueryVariables>;
-export const GetSerialDocument = {
-  kind: 'Document',
-  definitions: [
-    {
-      kind: 'OperationDefinition',
-      operation: 'query',
-      name: { kind: 'Name', value: 'GetSerial' },
-      variableDefinitions: [
-        {
-          kind: 'VariableDefinition',
-          variable: { kind: 'Variable', name: { kind: 'Name', value: 'id' } },
-          type: {
-            kind: 'NonNullType',
-            type: {
-              kind: 'NamedType',
-              name: { kind: 'Name', value: 'String' },
-            },
-          },
-        },
-      ],
-      selectionSet: {
-        kind: 'SelectionSet',
-        selections: [
-          {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'serial' },
-            arguments: [
-              {
-                kind: 'Argument',
-                name: { kind: 'Name', value: 'id' },
-                value: {
-                  kind: 'Variable',
-                  name: { kind: 'Name', value: 'id' },
-                },
-              },
-            ],
-            selectionSet: {
-              kind: 'SelectionSet',
-              selections: [
-                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
-                { kind: 'Field', name: { kind: 'Name', value: 'title' } },
-                { kind: 'Field', name: { kind: 'Name', value: 'imageUrl' } },
-                { kind: 'Field', name: { kind: 'Name', value: 'description' } },
-                { kind: 'Field', name: { kind: 'Name', value: 'rating' } },
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'episodes' },
-                  selectionSet: {
-                    kind: 'SelectionSet',
-                    selections: [
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'edges' },
-                        selectionSet: {
-                          kind: 'SelectionSet',
-                          selections: [
-                            {
-                              kind: 'Field',
-                              name: { kind: 'Name', value: 'node' },
-                              selectionSet: {
-                                kind: 'SelectionSet',
-                                selections: [
-                                  {
-                                    kind: 'Field',
-                                    name: { kind: 'Name', value: 'id' },
-                                  },
-                                  {
-                                    kind: 'Field',
-                                    name: { kind: 'Name', value: 'title' },
-                                  },
-                                  {
-                                    kind: 'Field',
-                                    name: { kind: 'Name', value: 'url' },
-                                  },
-                                  {
-                                    kind: 'Field',
-                                    name: {
-                                      kind: 'Name',
-                                      value: 'episodeNumber',
-                                    },
-                                  },
-                                  {
-                                    kind: 'Field',
-                                    name: { kind: 'Name', value: 'createdAt' },
-                                  },
-                                  {
-                                    kind: 'Field',
-                                    name: { kind: 'Name', value: 'updatedAt' },
-                                  },
-                                ],
-                              },
-                            },
-                          ],
-                        },
-                      },
-                    ],
-                  },
-                },
-              ],
-            },
-          },
-        ],
-      },
-    },
-  ],
-} as unknown as DocumentNode<GetSerialQuery, GetSerialQueryVariables>;
-export const GetUserDocument = {
-  kind: 'Document',
-  definitions: [
-    {
-      kind: 'OperationDefinition',
-      operation: 'query',
-      name: { kind: 'Name', value: 'GetUser' },
-      selectionSet: {
-        kind: 'SelectionSet',
-        selections: [
-          {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'user' },
-            selectionSet: {
-              kind: 'SelectionSet',
-              selections: [
-                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
-                { kind: 'Field', name: { kind: 'Name', value: 'name' } },
-                { kind: 'Field', name: { kind: 'Name', value: 'email' } },
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'emailVerified' },
-                },
-                { kind: 'Field', name: { kind: 'Name', value: 'image' } },
-                { kind: 'Field', name: { kind: 'Name', value: 'role' } },
-              ],
-            },
-          },
-        ],
-      },
-    },
-  ],
-} as unknown as DocumentNode<GetUserQuery, GetUserQueryVariables>;
+
+export type GetUserQuery = { __typename?: 'Query', user: { __typename?: 'User', id: string, name: string, email: string, emailVerified?: number | null, image?: string | null, role: string } };
+
+
+export const GetEpisodesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetEpisodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getEpisodes"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"first"},"value":{"kind":"IntValue","value":"25"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"pageInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"endCursor"}},{"kind":"Field","name":{"kind":"Name","value":"startCursor"}},{"kind":"Field","name":{"kind":"Name","value":"hasNextPage"}},{"kind":"Field","name":{"kind":"Name","value":"hasPreviousPage"}}]}},{"kind":"Field","name":{"kind":"Name","value":"totalCount"}},{"kind":"Field","name":{"kind":"Name","value":"edges"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"node"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"url"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"episodeNumber"}},{"kind":"Field","name":{"kind":"Name","value":"serialId"}},{"kind":"Field","name":{"kind":"Name","value":"serial"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"imageUrl"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"rating"}}]}}]}}]}}]}}]}}]} as unknown as DocumentNode<GetEpisodesQuery, GetEpisodesQueryVariables>;
+export const GetSerialDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetSerial"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"serial"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"imageUrl"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"rating"}},{"kind":"Field","name":{"kind":"Name","value":"episodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"edges"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"node"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"url"}},{"kind":"Field","name":{"kind":"Name","value":"episodeNumber"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}}]}}]}}]}}]}}]} as unknown as DocumentNode<GetSerialQuery, GetSerialQueryVariables>;
+export const GetUserDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetUser"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"emailVerified"}},{"kind":"Field","name":{"kind":"Name","value":"image"}},{"kind":"Field","name":{"kind":"Name","value":"role"}}]}}]}}]} as unknown as DocumentNode<GetUserQuery, GetUserQueryVariables>;
