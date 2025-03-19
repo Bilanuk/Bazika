@@ -1,4 +1,5 @@
 import Appbar from '@/components/AppBar';
+import Footer from '@/components/Footer';
 
 export default function MainLayout({
   children,
@@ -8,6 +9,7 @@ export default function MainLayout({
       <div className='min-h-screen dark:bg-black/[.9]'>
         <Appbar />
         {children}
+        <Footer />
       </div>
     </div>
   );
