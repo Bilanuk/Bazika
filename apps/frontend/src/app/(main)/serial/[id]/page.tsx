@@ -28,6 +28,8 @@ export default async function SerialPage({ params, searchParams }: Props) {
   const genres = ['Action', 'Comedy', 'Supernatural'];
   const viewCount = 12345;
 
+  const serverTime = new Date().toISOString();
+
   return (
     <main className='col-span-4'>
       <Head>
@@ -79,7 +81,7 @@ export default async function SerialPage({ params, searchParams }: Props) {
             </div>
 
             <div className='space-y-2'>
-              <TypographyH4>Episodes</TypographyH4>
+              <TypographyH4>{`Server time: ${serverTime}`}</TypographyH4>
             </div>
           </div>
         </div>
