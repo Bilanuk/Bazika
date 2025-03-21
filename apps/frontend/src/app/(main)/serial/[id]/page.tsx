@@ -3,31 +3,38 @@ import { TypographyH2, TypographyH4 } from '@components/ui/Typography';
 import VideoPlayer from '@/components/VideoPlayer';
 import Head from 'next/head';
 import Image from 'next/image';
-import { getClient } from '@/lib/client';
-import { GET_SERIAL } from '@/queries';
+import prisma from '@/lib/prisma';
 import { Rating } from '@/components/ui/Rating';
 import { Badge } from '@/components/ui/badge';
 import { Eye } from 'lucide-react';
+import { notFound } from 'next/navigation';
 
 interface Props {
   params: { id: string };
   searchParams: { episode?: string };
 }
 
+export const revalidate = 3600;
+
 export default async function SerialPage({ params, searchParams }: Props) {
-  const client = getClient();
-  const { data } = await client.query({
-    query: GET_SERIAL,
-    variables: { id: params.id },
+  const serial = await prisma.serial.findUnique({
+    where: {
+      id: params.id,
+    },
+    include: {
+      episodes: {
+        orderBy: {
+          episodeNumber: 'asc',
+        },
+      },
+    },
   });
 
-  const { serial } = data;
-  const { episodes } = serial;
+  if (!serial) {
+    notFound();
+  }
 
-  // Placeholder data
-  const genres = ['Action', 'Comedy', 'Supernatural'];
-  const viewCount = 12345;
-
+  const viewCount = 12345; // Placeholder data
   const serverTime = new Date().toISOString();
 
   return (
@@ -58,19 +65,11 @@ export default async function SerialPage({ params, searchParams }: Props) {
               </div>
             </div>
 
-            <div className='flex gap-2'>
-              {genres.map((genre) => (
-                <Badge key={genre} variant='secondary'>
-                  {genre}
-                </Badge>
-              ))}
-            </div>
-
             <div className='flex items-center gap-2 text-muted-foreground'>
               <Eye className='h-4 w-4' />
               <span>{viewCount.toLocaleString()} views</span>
               <span>•</span>
-              <span>{episodes.edges?.length || 0} episodes</span>
+              <span>{serial.episodes.length} episodes</span>
             </div>
 
             <div className='space-y-2'>
@@ -87,7 +86,7 @@ export default async function SerialPage({ params, searchParams }: Props) {
         </div>
 
         <VideoPlayer
-          episodes={episodes.edges}
+          episodes={serial.episodes}
           initialEpisodeNumber={searchParams.episode}
         />
       </PageWrapper>

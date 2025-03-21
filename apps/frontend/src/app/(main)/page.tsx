@@ -1,7 +1,7 @@
 import PageWrapper from '@components/PageWrapper';
 import GetRecentEpisodes from '@components/GetRecentEpisodes';
 import PageSeparator from '@components/PageSeparator';
-import { TypographyH4, TypographyP } from '@components/ui/Typography';
+import { TypographyH4 } from '@components/ui/Typography';
 
 export const revalidate = 10;
 

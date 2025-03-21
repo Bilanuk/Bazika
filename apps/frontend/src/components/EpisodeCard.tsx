@@ -3,15 +3,14 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle } from '@components/ui/card';
 import { Badge } from '@components/ui/badge';
-import { Episode } from '@/__generated__/graphql';
+import { Episode, Serial } from '@database';
 
 interface SerialCardProps {
   episode: Episode;
+  serial: Serial;
 }
 
-export default function EpisodeCard({ episode }: SerialCardProps) {
-  const { serial } = episode;
-
+export default function EpisodeCard({ episode, serial }: SerialCardProps) {
   return (
     <Link
       href={{

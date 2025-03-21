@@ -7,7 +7,7 @@ import {
 } from '@vidstack/react/player/layouts/default';
 import '@vidstack/react/player/styles/default/theme.css';
 import '@vidstack/react/player/styles/default/layouts/video.css';
-import { Episode } from '@/__generated__/graphql';
+import { Episode } from '@database';
 import { useState, useEffect, useRef } from 'react';
 import { TypographyH3, TypographyP } from './ui/Typography';
 import { ScrollArea } from './ui/scroll-area';
@@ -33,21 +33,7 @@ const styles = `
 `;
 
 interface VideoPlayerProps {
-  episodes:
-    | Array<{
-        __typename?: 'EpisodeEdge';
-        node: {
-          __typename?: 'Episode';
-          id: string;
-          title: string;
-          url: string;
-          episodeNumber: number;
-          createdAt: string;
-          updatedAt: string;
-        };
-      }>
-    | null
-    | undefined;
+  episodes: Episode[] | null | undefined;
   initialEpisodeNumber?: string;
 }
 
@@ -57,14 +43,13 @@ export default function VideoPlayer({
 }: VideoPlayerProps) {
   const sortedEpisodes = episodes
     ?.slice()
-    .sort((a, b) => a.node.episodeNumber - b.node.episodeNumber);
+    .sort((a, b) => a.episodeNumber - b.episodeNumber);
 
   const initialEpisode = initialEpisodeNumber
     ? sortedEpisodes?.find(
-        (episode) =>
-          episode.node.episodeNumber === parseInt(initialEpisodeNumber)
-      )?.node ?? sortedEpisodes?.[0]?.node
-    : sortedEpisodes?.[0]?.node;
+        (episode) => episode.episodeNumber.toString() === initialEpisodeNumber
+      ) ?? sortedEpisodes?.[0]
+    : sortedEpisodes?.[0];
 
   const [currentEpisode, setCurrentEpisode] = useState(initialEpisode);
   const [isError, setIsError] = useState(false);
@@ -104,11 +89,12 @@ export default function VideoPlayer({
       <div className='col-span-4 grid grid-cols-4 rounded-lg border'>
         <div className='col-span-3'>
           {isError ? (
-            <div className="flex h-[600px] flex-col items-center justify-center gap-4 bg-background/30 p-8 text-center">
-              <AlertCircle className="h-12 w-12 text-destructive" />
+            <div className='flex h-[600px] flex-col items-center justify-center gap-4 bg-background/30 p-8 text-center'>
+              <AlertCircle className='h-12 w-12 text-destructive' />
               <TypographyH3>Video Unavailable</TypographyH3>
-              <TypographyP className="text-muted-foreground">
-                We apologize, but we are unable to load this video at the moment. Please try again later.
+              <TypographyP className='text-muted-foreground'>
+                We apologize, but we are unable to load this video at the
+                moment. Please try again later.
               </TypographyP>
             </div>
           ) : (
@@ -126,13 +112,10 @@ export default function VideoPlayer({
         </div>
 
         <div className='col-span-1 border-l'>
-          <ScrollArea
-            ref={scrollAreaRef}
-            className='h-[600px] p-4'
-          >
+          <ScrollArea ref={scrollAreaRef} className='h-[600px] p-4'>
             <TypographyH3 className='mb-4'>Episodes</TypographyH3>
             <div className='flex flex-col gap-2'>
-              {sortedEpisodes.map(({ node: episode }) => (
+              {sortedEpisodes.map((episode) => (
                 <button
                   key={episode.id}
                   ref={(el) => {
@@ -148,7 +131,7 @@ export default function VideoPlayer({
                   )}
                 >
                   <TypographyP>
-                    {episode.episodeNumber} {episode.title}
+                    Episode {episode.episodeNumber}: {episode.title}
                   </TypographyP>
                 </button>
               ))}

@@ -23,21 +23,21 @@ import { TypographyP } from '@components/ui/Typography';
 import { authOptions } from '@app/api/auth/[...nextauth]/authOptions';
 
 import Link from 'next/link';
-import { useUser } from '@/hooks';
-import { UserRoles } from '@app/types';
+import { UserRoles } from '@/types';
 
 export async function UserDropdown() {
   const session = await getServerSession(authOptions);
-  const user = await useUser();
+
+  if (!session) return null;
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <div className='flex cursor-pointer flex-row items-center space-x-2'>
-          <TypographyP>{`${session?.user.name}`}</TypographyP>
+          <TypographyP>{session.user.name}</TypographyP>
           <Avatar>
-            <AvatarImage src={session?.user.image} alt={session?.user.name} />
-            <AvatarFallback>{session?.user.name[0]}</AvatarFallback>
+            <AvatarImage src={session.user.image} alt={session.user.name} />
+            <AvatarFallback>{session.user.name[0]}</AvatarFallback>
           </Avatar>
         </div>
       </DropdownMenuTrigger>
@@ -45,7 +45,7 @@ export async function UserDropdown() {
         <DropdownMenuLabel>My Account</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          {user.role === UserRoles.ADMIN && (
+          {session.user.role === UserRoles.ADMIN && (
             <Link href='/dashboard'>
               <DropdownMenuItem>
                 <LayoutPanelLeft className='mr-2 h-4 w-4' />
