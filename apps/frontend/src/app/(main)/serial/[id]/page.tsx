@@ -3,26 +3,44 @@ import { TypographyH2, TypographyH4 } from '@components/ui/Typography';
 import VideoPlayer from '@/components/VideoPlayer';
 import Head from 'next/head';
 import Image from 'next/image';
-import { getClient } from '@/lib/client';
-import { GET_SERIAL } from '@/queries';
 import { Rating } from '@/components/ui/Rating';
 import { Badge } from '@/components/ui/badge';
 import { Eye } from 'lucide-react';
+import prisma from '@/lib/prisma';
 
 interface Props {
   params: { id: string };
   searchParams: { episode?: string };
 }
 
-export default async function SerialPage({ params, searchParams }: Props) {
-  const client = getClient();
-  const { data } = await client.query({
-    query: GET_SERIAL,
-    variables: { id: params.id },
+export async function generateStaticParams() {
+  const serials = await prisma.serial.findMany({
+    select: { id: true },
   });
 
-  const { serial } = data;
-  const { episodes } = serial;
+  return serials.map((serial) => ({
+    id: serial.id,
+  }));
+}
+
+export const dynamic = 'force-static';
+export const revalidate = 10;
+
+export default async function SerialPage({ params, searchParams }: Props) {
+  const serial = await prisma.serial.findUnique({
+    where: { id: params.id },
+    include: {
+      episodes: {
+        orderBy: {
+          episodeNumber: 'asc',
+        },
+      },
+    },
+  });
+
+  if (!serial) {
+    return <div>Serial not found</div>;
+  }
 
   // Placeholder data
   const genres = ['Action', 'Comedy', 'Supernatural'];
@@ -70,7 +88,7 @@ export default async function SerialPage({ params, searchParams }: Props) {
               <Eye className='h-4 w-4' />
               <span>{viewCount.toLocaleString()} views</span>
               <span>•</span>
-              <span>{episodes.edges?.length || 0} episodes</span>
+              <span>{serial.episodes.length} episodes</span>
             </div>
 
             <div className='space-y-2'>
@@ -87,7 +105,14 @@ export default async function SerialPage({ params, searchParams }: Props) {
         </div>
 
         <VideoPlayer
-          episodes={episodes.edges}
+          episodes={serial.episodes.map((episode) => ({
+            node: {
+              ...episode,
+              createdAt: episode.createdAt.toISOString(),
+              updatedAt: episode.updatedAt.toISOString(),
+              __typename: 'Episode',
+            },
+          }))}
           initialEpisodeNumber={searchParams.episode}
         />
       </PageWrapper>
