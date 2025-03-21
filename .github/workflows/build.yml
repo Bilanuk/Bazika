@@ -13,7 +13,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Build .env.local file
+      - name: Build frontend .env.local file
         working-directory: ./apps/frontend
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
@@ -23,6 +23,13 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           envsubst < .env.envsubst > .env.local
+
+      - name: Build database .env file
+        working-directory: ./packages/database
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          envsubst < .env.envsubst > .env
 
       - name: Allow insecure Docker registry
         run: |
