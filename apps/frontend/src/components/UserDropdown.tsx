@@ -1,3 +1,5 @@
+'use client';
+
 import {
   Cloud,
   CreditCard,
@@ -16,28 +18,33 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { getServerSession } from 'next-auth';
+import { useSession } from 'next-auth/react';
 import { Avatar, AvatarFallback, AvatarImage } from '@components/ui/avatar';
 import LogOutButton from '@/actions/LogOutButton';
 import { TypographyP } from '@components/ui/Typography';
-import { authOptions } from '@app/api/auth/[...nextauth]/authOptions';
-
-import Link from 'next/link';
 import { UserRoles } from '@/types';
+import Link from 'next/link';
 
-export async function UserDropdown() {
-  const session = await getServerSession(authOptions);
+export function UserDropdown() {
+  const { data: session } = useSession();
 
   if (!session) return null;
+
+  const user = session.user as {
+    name: string;
+    email: string;
+    image: string;
+    role?: UserRoles;
+  };
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <div className='flex cursor-pointer flex-row items-center space-x-2'>
-          <TypographyP>{session.user.name}</TypographyP>
+          <TypographyP>{user.name}</TypographyP>
           <Avatar>
-            <AvatarImage src={session.user.image} alt={session.user.name} />
-            <AvatarFallback>{session.user.name[0]}</AvatarFallback>
+            <AvatarImage src={user.image} alt={user.name} />
+            <AvatarFallback>{user.name[0]}</AvatarFallback>
           </Avatar>
         </div>
       </DropdownMenuTrigger>
@@ -45,7 +52,7 @@ export async function UserDropdown() {
         <DropdownMenuLabel>My Account</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          {session.user.role === UserRoles.ADMIN && (
+          {user.role === UserRoles.ADMIN && (
             <Link href='/dashboard'>
               <DropdownMenuItem>
                 <LayoutPanelLeft className='mr-2 h-4 w-4' />

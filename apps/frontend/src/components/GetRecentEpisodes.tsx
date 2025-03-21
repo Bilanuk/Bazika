@@ -2,17 +2,26 @@ import prisma from '@/lib/prisma';
 import EpisodeCard from '@components/EpisodeCard';
 import { CarouselContent, CarouselItem } from '@/components/ui/carousel';
 import ClientSideCarousel from '@components/ClientSideCarousel';
+import { unstable_cache } from 'next/cache';
+
+const getRecentEpisodesData = unstable_cache(
+  async () => {
+    return prisma.episode.findMany({
+      include: {
+        serial: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: 20,
+    });
+  },
+  ['recent-episodes'],
+  { revalidate: 10 }
+);
 
 export default async function GetRecentEpisodes() {
-  const episodes = await prisma.episode.findMany({
-    include: {
-      serial: true,
-    },
-    orderBy: {
-      createdAt: 'desc',
-    },
-    take: 20,
-  });
+  const episodes = await getRecentEpisodesData();
 
   if (!episodes || episodes.length === 0) {
     return <h1>No episodes found</h1>;
