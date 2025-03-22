@@ -5,10 +5,9 @@ import SignInButton from '@components/SignInButton';
 import { UserDropdown } from '@components/UserDropdown';
 import React from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import dynamic from 'next/dynamic';
 
-const UserMenu = () => {
-  const { data: session, status } = useSession();
+export default function UserMenu() {
+  const { status } = useSession();
 
   if (status === 'loading') {
     return (
@@ -19,13 +18,5 @@ const UserMenu = () => {
     );
   }
 
-  if (session) {
-    return <UserDropdown />;
-  }
-
-  return <SignInButton />;
+  return <UserDropdown />;
 }
-
-export default dynamic(() => Promise.resolve(UserMenu), {
-  ssr: false
-});
