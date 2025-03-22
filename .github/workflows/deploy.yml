@@ -1,35 +1,68 @@
-# name: Deploy
+name: Build and Deploy Docker Images
 
-# on:
-#   workflow_dispatch:
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
 
-# permissions:
-#   contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
 
-# env:
-#   TF_WORKING_DIR: ./terraform
+      - name: Build frontend .env.local file
+        working-directory: ./apps/frontend
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          envsubst < .env.envsubst > .env.local
 
-# jobs:
-#   terraform:
-#     runs-on: ubuntu-latest
-#     defaults:
-#       run:
-#         shell: bash
-#         working-directory: ${{ env.TF_WORKING_DIR }}
-#     steps:
-#       - name: Checkout
-#         uses: actions/checkout@v2
+      - name: Build database .env file
+        working-directory: ./packages/database
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          envsubst < .env.envsubst > .env
 
-#       - name: Setup Terraform
-#         uses: hashicorp/setup-terraform@v3
-#         with:
-#           cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+      - name: Allow insecure Docker registry
+        run: |
+          sudo mkdir -p /etc/docker
+          echo '{"insecure-registries": ["213.109.237.185:5000"]}' | sudo tee -a /etc/docker/daemon.json
+          sudo systemctl restart docker
 
-#       - name: Terraform Init
-#         run: terraform init
+      - name: Build, tag, and push images to self-hosted registry
+        id: build-image
+        env:
+          REGISTRY: 213.109.237.185:5000
+          IMAGE_TAG: latest
+        run: |
+          docker compose -f docker-compose.build.yml build frontend backend nginx
 
-#       - name: Terraform Apply
-#         run: terraform apply -auto-approve
+          docker tag bazika-frontend:latest $REGISTRY/bazika-frontend:$IMAGE_TAG
+          docker tag bazika-backend:latest $REGISTRY/bazika-backend:$IMAGE_TAG
+          docker tag bazika-ingress:latest $REGISTRY/bazika-ingress:$IMAGE_TAG
 
-#       - name: Terraform Output
-#         run: terraform output
+          docker push $REGISTRY/bazika-frontend:$IMAGE_TAG
+          docker push $REGISTRY/bazika-backend:$IMAGE_TAG
+          docker push $REGISTRY/bazika-ingress:$IMAGE_TAG
+
+      - name: Install sshpass
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y sshpass
+
+      - name: Deploy to Server
+        run: |
+          sshpass -p "${{ secrets.SERVER_PASSWORD }}" ssh -o StrictHostKeyChecking=no roma@213.109.237.185 '
+            cd /home/roma/Bazika && \
+            docker compose pull && \
+            docker compose up -d && \
+            docker system prune -f
+          '
