@@ -83,12 +83,25 @@ export const authOptions: AuthOptions = {
   ],
   session: {
     strategy: 'jwt',
-    maxAge: 24 * 60 * 60, // 1 day
+    maxAge: 24 * 60 * 60,
+    updateAge: 60 * 60,
   },
   adapter,
   callbacks: {
-    async jwt({ token, account }) {
+    async jwt({ token, account, user }) {
       if (account) {
+        const freshUser = await prisma.user.findUnique({
+          where: { id: token.sub },
+          select: { name: true, email: true, image: true, role: true },
+        });
+
+        if (freshUser) {
+          token.name = freshUser.name;
+          token.email = freshUser.email;
+          token.picture = freshUser.image;
+          token.role = freshUser.role;
+        }
+
         token.auth_token = await signJwt(
           {
             sub: token.sub,
@@ -98,24 +111,23 @@ export const authOptions: AuthOptions = {
           },
           '1d'
         );
-
-        const user = await prisma.user.findUnique({
-          where: { id: token.sub },
-          select: { role: true },
-        });
-        token.role = user?.role;
       }
       return token;
     },
-    async session({ session, token }) {
-      return {
+    async session({ session, token }) {  
+      const finalSession = {
         ...session,
         auth_token: token.auth_token as string,
         user: {
           ...session.user,
+          name: token.name,
+          email: token.email,
+          image: token.picture,
           role: token.role,
         },
       };
+      
+      return finalSession;
     },
   },
   pages: {
