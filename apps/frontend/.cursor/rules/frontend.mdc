@@ -1,0 +1,9 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+- Please when writing ui use tailwind config as provided [tailwind.config.ts](mdc:apps/frontend/tailwind.config.ts)
+- When adding new components please use shadcn when possible or when asked to do so. Example command (from apps/frontend directory): "pnpm dlx shadcn@latest add chart"
+- Be thoughtfull when using server or client generated components. If components will be publically visible to a lot of users it is better to make it server generated and properly chached because of performance limitations.
+- For api calls use TanStack Querry. For server side generated components you can import prisma use fetch data directly from db "import prisma from '@/lib/prisma';"

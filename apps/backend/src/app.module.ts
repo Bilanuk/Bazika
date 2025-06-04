@@ -14,6 +14,8 @@ import { GoogleStrategy } from '@/strategies/google.strategy';
 import { JwtStrategy } from '@/strategies/jwt.strategy';
 import { JwtModule } from '@nestjs/jwt';
 import { UsersModule } from '@/users/users.module';
+import { ContentMonitoringModule } from '@/content-monitoring/content-monitoring.module';
+import { SourcesModule } from '@/sources/sources.module';
 
 @Module({
   imports: [
@@ -26,6 +28,8 @@ import { UsersModule } from '@/users/users.module';
         GOOGLE_CLIENT_SECRET: Joi.string().required(),
         GOOGLE_CALLBACK_URL: Joi.string().required(),
         APP_JWT_SECRET: Joi.string().required(),
+        TELEGRAM_BOT_TOKEN: Joi.string().optional(),
+        TELEGRAM_CHAT_ID: Joi.string().optional(),
       }),
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
@@ -44,6 +48,8 @@ import { UsersModule } from '@/users/users.module';
     SerialsModule,
     HealthModule,
     PrismaModule,
+    ContentMonitoringModule,
+    SourcesModule,
   ],
   providers: [PrismaService, GoogleStrategy, JwtStrategy],
 })

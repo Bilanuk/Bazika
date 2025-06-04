@@ -6,7 +6,8 @@
     "build": "tsc",
     "db:generate": "prisma generate",
     "db:push": "prisma db push --skip-generate",
-    "db:seed": "node --loader ts-node/esm seed.ts"
+    "db:seed": "node --loader ts-node/esm seed.ts",
+    "db:migrate": "prisma migrate dev"
   },
   "exports": {
     ".": "./src/index.ts"
