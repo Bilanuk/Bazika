@@ -67,15 +67,14 @@ model Account {
   type              String
   provider          String
   providerAccountId String  @map("provider_account_id")
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
   @@map("accounts")
@@ -116,4 +115,62 @@ model VerificationToken {
 enum UserRole {
   USER
   ADMIN
+  CONTRIBUTOR
+}
+
+model Source {
+  id          String        @id @default(uuid())
+  name        String
+  type        SourceType
+  url         String
+  isActive    Boolean       @default(true)
+  lastChecked DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  contentItems ContentItem[]
+}
+
+model ContentItem {
+  id               String           @id @default(uuid())
+  title            String
+  description      String?
+  url              String
+  guid             String           @unique // RSS GUID or unique identifier
+  publishedAt      DateTime
+  sourceId         String
+  notificationSent Boolean          @default(false) // Renamed from 'processed' - indicates if notifications were sent
+  processingStatus ProcessingStatus @default(PENDING) // New field for video processing workflow
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  source           Source           @relation(fields: [sourceId], references: [id])
+}
+
+model NotificationChannel {
+  id        String            @id @default(uuid())
+  type      NotificationType
+  config    Json              // Store channel-specific config (e.g., chat_id for Telegram)
+  isActive  Boolean           @default(true)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+}
+
+enum SourceType {
+  RSS
+  API
+  SCRAPER
+}
+
+enum NotificationType {
+  TELEGRAM
+  DISCORD
+  EMAIL
+}
+
+enum ProcessingStatus {
+  PENDING     // Initial state - item created but not queued for processing
+  QUEUED      // Item has been queued for processing
+  PROCESSING  // Item is currently being processed by a worker
+  COMPLETED   // Processing completed successfully
+  FAILED      // Processing failed (can be retried)
+  SKIPPED     // Item was skipped (e.g., not suitable for processing)
 }

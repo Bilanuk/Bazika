@@ -4,6 +4,7 @@ import { ReactNode } from 'react';
 import AuthContext from './AuthContext';
 import ThemeContext from '@/providers/ThemeContext';
 import ApolloWrapper from '@/providers/ApolloWrapper';
+import QueryProvider from '@/providers/QueryProvider';
 
 type ProviderPropType = {
   children: ReactNode;
@@ -12,9 +13,11 @@ type ProviderPropType = {
 const Providers = ({ children }: ProviderPropType) => {
   return (
     <ThemeContext attribute={'class'} defaultTheme={'system'}>
-      <ApolloWrapper>
-        <AuthContext>{children}</AuthContext>
-      </ApolloWrapper>
+      <QueryProvider>
+        <ApolloWrapper>
+          <AuthContext>{children}</AuthContext>
+        </ApolloWrapper>
+      </QueryProvider>
     </ThemeContext>
   );
 };
