@@ -30,14 +30,24 @@ RUN turbo run build --filter=backend
 FROM base AS runner
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nodejs
-USER nodejs
 
 WORKDIR /app
 COPY --from=installer --chown=nodejs:nodejs /app .
+
+# Install Prisma CLI for migrations
+RUN pnpm add -g prisma
+
+# Copy migration files and schema
+COPY --from=installer --chown=nodejs:nodejs /app/packages/database/prisma ./prisma
+
+USER nodejs
 WORKDIR /app/apps/backend
 
 ENV NODE_ENV=production
 
 EXPOSE 4001
 
-CMD ["node", "./dist/main"]
+# Create startup script that runs migrations then starts the app
+RUN echo '#!/bin/sh\necho "🔄 Running database migrations..."\nprisma migrate deploy --schema=../../prisma/schema.prisma\necho "✅ Migrations completed!"\necho "🚀 Starting application..."\nnode ./dist/main' > start.sh && chmod +x start.sh
+
+CMD ["./start.sh"]
