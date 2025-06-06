@@ -34,20 +34,11 @@ RUN adduser --system --uid 1001 nodejs
 WORKDIR /app
 COPY --from=installer --chown=nodejs:nodejs /app .
 
-# Install Prisma CLI for migrations using npm instead of pnpm
-RUN npm install -g prisma
-
-# Copy migration files and schema
-COPY --from=installer --chown=nodejs:nodejs /app/packages/database/prisma ./prisma
-
-# Create startup script that runs migrations then starts the app (before switching user)
-WORKDIR /app/apps/backend
-RUN echo '#!/bin/sh\necho "🔄 Running database migrations..."\nprisma migrate deploy --schema=../../prisma/schema.prisma\necho "✅ Migrations completed!"\necho "🚀 Starting application..."\nnode ./dist/main' > start.sh && chmod +x start.sh && chown nodejs:nodejs start.sh
-
 USER nodejs
+WORKDIR /app/apps/backend
 
 ENV NODE_ENV=production
 
 EXPOSE 4001
 
-CMD ["./start.sh"]
+CMD ["node", "./dist/main"]

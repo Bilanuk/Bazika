@@ -31,6 +31,26 @@ jobs:
         run: |
           envsubst < .env.envsubst > .env
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '21'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Run Database Migrations
+        working-directory: ./packages/database
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          echo "🔄 Running database migrations..."
+          npx prisma migrate deploy
+          echo "✅ Migrations completed!"
+
       - name: Allow insecure Docker registry
         run: |
           sudo mkdir -p /etc/docker
