@@ -40,14 +40,14 @@ RUN npm install -g prisma
 # Copy migration files and schema
 COPY --from=installer --chown=nodejs:nodejs /app/packages/database/prisma ./prisma
 
-USER nodejs
+# Create startup script that runs migrations then starts the app (before switching user)
 WORKDIR /app/apps/backend
+RUN echo '#!/bin/sh\necho "🔄 Running database migrations..."\nprisma migrate deploy --schema=../../prisma/schema.prisma\necho "✅ Migrations completed!"\necho "🚀 Starting application..."\nnode ./dist/main' > start.sh && chmod +x start.sh && chown nodejs:nodejs start.sh
+
+USER nodejs
 
 ENV NODE_ENV=production
 
 EXPOSE 4001
-
-# Create startup script that runs migrations then starts the app
-RUN echo '#!/bin/sh\necho "🔄 Running database migrations..."\nprisma migrate deploy --schema=../../prisma/schema.prisma\necho "✅ Migrations completed!"\necho "🚀 Starting application..."\nnode ./dist/main' > start.sh && chmod +x start.sh
 
 CMD ["./start.sh"]
