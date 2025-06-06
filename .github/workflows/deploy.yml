@@ -46,6 +46,7 @@ jobs:
         working-directory: ./packages/database
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DIRECT_URL: ${{ secrets.DATABASE_URL }}
         run: |
           echo "🔄 Running database migrations..."
           npx prisma migrate deploy
