@@ -34,8 +34,8 @@ RUN adduser --system --uid 1001 nodejs
 WORKDIR /app
 COPY --from=installer --chown=nodejs:nodejs /app .
 
-# Install Prisma CLI for migrations
-RUN pnpm add -g prisma
+# Install Prisma CLI for migrations using npm instead of pnpm
+RUN npm install -g prisma
 
 # Copy migration files and schema
 COPY --from=installer --chown=nodejs:nodejs /app/packages/database/prisma ./prisma
