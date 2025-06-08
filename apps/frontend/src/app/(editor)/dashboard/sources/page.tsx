@@ -9,6 +9,7 @@ import { DataTable } from '@/components/data-table/data-table';
 import { sourcesColumns } from '@/components/data-table/sources-columns';
 import { Source } from '@/hooks/useSources';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import AddSourceSheet from '@/components/AddSourceSheet';
 import AdminOnly from '@/components/AdminOnly';
 
 // Fetch function for React Query
@@ -58,10 +59,7 @@ export default function SourcesPage() {
               <RefreshCw className={`h-4 w-4 mr-2 ${sourcesLoading ? 'animate-spin' : ''}`} />
               Refresh
             </Button>
-            <Button size="sm">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Source
-            </Button>
+            <AddSourceSheet onSourceAdded={handleRefresh} />
           </div>
         </div>
 

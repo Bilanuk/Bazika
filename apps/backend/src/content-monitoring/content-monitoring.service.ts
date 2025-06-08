@@ -19,8 +19,7 @@ export class ContentMonitoringService {
     private serialEpisodeService: SerialEpisodeService,
   ) {}
 
-  // Run every 15 minutes
-  @Cron(CronExpression.EVERY_10_MINUTES)
+  @Cron(CronExpression.EVERY_MINUTE)
   async monitorAllSources(): Promise<void> {
     this.logger.log('Starting scheduled content monitoring...');
 

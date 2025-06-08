@@ -30,14 +30,18 @@ export class AnimeParserService {
         remainingTitle = cleanTitle.replace(releaseGroupMatch[0], '').trim();
       }
 
-      // Extract quality (1080p, 720p, etc.)
-      const qualityMatch = remainingTitle.match(/\((\d+p)\)/i);
-      const quality = qualityMatch?.[1];
+      // Extract quality (1080p, 720p, etc.) - handle both parentheses and brackets
+      const qualityMatch = remainingTitle.match(/[\[\(](\d+p)[\]\)]|(\d+p)/i);
+      const quality = qualityMatch?.[1] || qualityMatch?.[2];
 
-      // Remove quality and hash from title
+      // Remove quality, codec info, and hash from title - more comprehensive cleanup
       remainingTitle = remainingTitle
-        .replace(/\(\d+p\)/gi, '')
-        .replace(/\[[A-F0-9]{8}\]/gi, '') // Remove CRC hash
+        .replace(/\[\d+p[^\]]*\]/gi, '') // Remove [1080p CR WEB-DL AVC AAC]
+        .replace(/\([^\)]*\d+p[^\)]*\)/gi, '') // Remove (1080p) style
+        .replace(/\[[A-F0-9]{8}\]/gi, '') // Remove CRC hash [ADB20474]
+        .replace(/\[MultiSub\]/gi, '') // Remove [MultiSub]
+        .replace(/\[.*?Sub.*?\]/gi, '') // Remove any subtitle info
+        .replace(/\[.*?DL.*?\]/gi, '') // Remove download info
         .trim();
 
       // Extract episode number - look for patterns like "- 10", "Episode 10", "Ep 10"

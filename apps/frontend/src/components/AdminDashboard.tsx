@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { RefreshCw, Plus, AlertCircle, ArrowRight, Database } from 'lucide-react';
 import { Source, ContentItem, ProcessingStatus } from '@/hooks/useSources';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import AddSourceSheet from '@/components/AddSourceSheet';
 import Link from 'next/link';
 
 // Fetch functions for React Query
@@ -141,10 +142,7 @@ export default function AdminDashboard() {
             <Database className={`h-4 w-4 mr-2 ${isAniListSyncing ? 'animate-spin' : ''}`} />
             Sync AniList
           </Button>
-          <Button size="sm">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Source
-          </Button>
+          <AddSourceSheet onSourceAdded={handleRefresh} />
         </div>
       </div>
 

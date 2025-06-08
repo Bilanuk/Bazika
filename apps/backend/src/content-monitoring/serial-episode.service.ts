@@ -19,20 +19,48 @@ export class SerialEpisodeService {
    */
   async findOrCreateSerial(parsedTitle: ParsedAnimeTitle): Promise<Serial> {
     const seriesTitle = this.animeParser.generateSeriesTitle(parsedTitle);
+    const normalizedSeriesName = this.animeParser.normalizeSeriesName(
+      parsedTitle.seriesName,
+    );
 
-    // Try to find existing serial by normalized name
+    // Try to find existing serial by exact title match first
     let serial = await this.prisma.serial.findFirst({
       where: {
         title: {
-          contains: parsedTitle.seriesName,
+          equals: seriesTitle,
           mode: 'insensitive',
         },
       },
     });
 
+    // If not found, try normalized matching
+    if (!serial) {
+      const existingSerials = await this.prisma.serial.findMany({
+        select: { id: true, title: true },
+      });
+
+      // Find by normalized name comparison
+      for (const existingSerial of existingSerials) {
+        const normalizedExistingTitle = this.animeParser.normalizeSeriesName(
+          existingSerial.title,
+        );
+        if (normalizedExistingTitle === normalizedSeriesName) {
+          serial = await this.prisma.serial.findUnique({
+            where: { id: existingSerial.id },
+          });
+          this.logger.debug(
+            `Found existing serial by normalized match: "${existingSerial.title}" matches "${parsedTitle.seriesName}"`,
+          );
+          break;
+        }
+      }
+    }
+
     if (!serial) {
       // Create new serial
-      this.logger.log(`Creating new serial: ${seriesTitle}`);
+      this.logger.log(
+        `Creating new serial: ${seriesTitle} (normalized: ${normalizedSeriesName})`,
+      );
       serial = await this.prisma.serial.create({
         data: {
           title: seriesTitle,

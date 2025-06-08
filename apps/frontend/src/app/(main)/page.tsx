@@ -1,5 +1,6 @@
 import PageWrapper from '@components/PageWrapper';
-import GetRecentEpisodes from '@components/GetRecentEpisodes';
+import GetRandomSerials from '@components/GetRandomSerials';
+import GetRecentEpisodesVertical from '@components/GetRecentEpisodesVertical';
 import PageSeparator from '@components/PageSeparator';
 import { TypographyH4 } from '@components/ui/Typography';
 import { unstable_cache } from 'next/cache';
@@ -21,10 +22,13 @@ export default async function Home() {
     <main>
       <PageWrapper>
         <div className={'col-span-4'}>
-          <TypographyH4>{`Recent updates - ${serverTime}`}</TypographyH4>
+          <TypographyH4>Popular Serials</TypographyH4>
           <PageSeparator />
-          <GetRecentEpisodes />
-          <PageSeparator />
+          <GetRandomSerials />
+        </div>
+        <div className={'col-span-2'}>
+          <TypographyH4>Recent Episodes</TypographyH4>
+          <GetRecentEpisodesVertical />
         </div>
       </PageWrapper>
     </main>

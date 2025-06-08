@@ -8,6 +8,8 @@ import { Rating } from '@/components/ui/Rating';
 import { Badge } from '@/components/ui/badge';
 import { Eye } from 'lucide-react';
 import { notFound } from 'next/navigation';
+import { MdOutlineImageNotSupported } from "react-icons/md";
+import SerialAdminSheet from '@/components/SerialAdminSheet';
 
 interface Props {
   params: { id: string };
@@ -61,17 +63,26 @@ export default async function SerialPage({ params, searchParams }: Props) {
         <div className={`relative col-span-4 mb-8 grid grid-cols-4 gap-8 ${serial.bannerImage ? '-mt-24' : ''}`}>
           <div className='col-span-1'>
             <div className='relative aspect-[2/3] w-full'>
-              <Image
-                src={serial.imageUrl}
-                alt={serial.title}
-                fill
-                className='rounded-lg object-cover shadow-lg'
-              />
+              {serial.imageUrl ? (
+                <Image
+                  src={serial.imageUrl}
+                  alt={serial.title}
+                  fill
+                  className='rounded-lg object-cover shadow-lg'
+                />
+              ) : (
+                <div className="w-full h-full rounded-lg bg-muted flex items-center justify-center shadow-lg">
+                  <MdOutlineImageNotSupported className="h-16 w-16 text-muted-foreground" />
+                </div>
+              )}
             </div>
           </div>
           <div className='col-span-3 space-y-4'>
             <div className='space-y-2'>
-              <TypographyH2>{serial.title}</TypographyH2>
+              <div className='flex items-center justify-between'>
+                <TypographyH2>{serial.title}</TypographyH2>
+                <SerialAdminSheet serial={serial} />
+              </div>
               <div className='flex items-center gap-4'>
                 <Rating value={serial.rating} />
                 <span className='text-muted-foreground'>
