@@ -157,7 +157,7 @@ model ContentItem {
   episodeId        String?          // Optional link to episode
   infoHash         String?          // For torrent content
   notificationSent Boolean          @default(false) // Renamed from 'processed' - indicates if notifications were sent
-  processingStatus ProcessingStatus @default(PENDING) // New field for video processing workflow
+  processingStatus ProcessingStatus @default(NONE) // New field for video processing workflow
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
   source           Source           @relation(fields: [sourceId], references: [id])
@@ -187,10 +187,14 @@ enum NotificationType {
 }
 
 enum ProcessingStatus {
-  PENDING     // Initial state - item created but not queued for processing
-  QUEUED      // Item has been queued for processing
-  PROCESSING  // Item is currently being processed by a worker
-  COMPLETED   // Processing completed successfully
-  FAILED      // Processing failed (can be retried)
-  SKIPPED     // Item was skipped (e.g., not suitable for processing)
+  NONE           // Initial state - item created but not queued
+  DOWNLOAD_QUEUED   // Download has been queued
+  DOWNLOADING       // Currently downloading from torrent
+  DOWNLOAD_COMPLETED // Download completed, file stored in MinIO
+  DOWNLOAD_FAILED   // Download failed (can be retried)
+  PROCESSING_QUEUED // Queued for video processing (FFmpeg, etc.)
+  PROCESSING        // Currently being processed (FFmpeg, etc.)
+  PROCESSING_COMPLETED         // All processing completed successfully
+  PROCESSING_FAILED            // Processing failed (can be retried)
+  PROCESSING_SKIPPED           // Item was skipped (e.g., not suitable for processing)
 }

@@ -48,6 +48,16 @@ services:
       - MINIO_ROOT_PASSWORD=12345678
       - MINIO_DEFAULT_BUCKETS=anime
 
+  redis:
+    image: redis:alpine
+    container_name: bazika-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
 volumes:
   postgres-bazika:
   minio_data:
+  redis_data:

@@ -1,7 +1,12 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
-import { ArrowUpDown, ExternalLink, MoreHorizontal } from 'lucide-react';
+import {
+  ArrowUpDown,
+  ExternalLink,
+  MoreHorizontal,
+  Download,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -15,6 +20,32 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { ContentItem, ProcessingStatus } from '@/hooks/useSources';
 
+// Helper function to handle torrent download
+const handleDownloadTorrent = async (contentItem: ContentItem) => {
+  try {
+    const response = await fetch(`/api/content-items/${contentItem.id}/download`, {
+      method: 'POST',
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Failed to queue download');
+    }
+
+    // Show success message (you can replace with proper toast notification)
+    alert('Download queued successfully!');
+  } catch (error) {
+    console.error('Error queuing download:', error);
+    // Show error message (you can replace with proper toast notification)
+    alert(`Failed to queue download: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+};
+
+// Helper function to check if URL is a torrent
+const isTorrentUrl = (url: string): boolean => {
+  return url.startsWith('magnet:') || url.endsWith('.torrent');
+};
+
 export const contentItemsColumns: ColumnDef<ContentItem>[] = [
   {
     id: 'select',
@@ -25,14 +56,14 @@ export const contentItemsColumns: ColumnDef<ContentItem>[] = [
           (table.getIsSomePageRowsSelected() && 'indeterminate')
         }
         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
+        aria-label='Select all'
       />
     ),
     cell: ({ row }) => (
       <Checkbox
         checked={row.getIsSelected()}
         onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
+        aria-label='Select row'
       />
     ),
     enableSorting: false,
@@ -43,11 +74,11 @@ export const contentItemsColumns: ColumnDef<ContentItem>[] = [
     header: ({ column }) => {
       return (
         <Button
-          variant="ghost"
+          variant='ghost'
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
         >
           Title
-          <ArrowUpDown className="ml-2 h-4 w-4" />
+          <ArrowUpDown className='ml-2 h-4 w-4' />
         </Button>
       );
     },
@@ -55,15 +86,15 @@ export const contentItemsColumns: ColumnDef<ContentItem>[] = [
       const title = row.getValue('title') as string;
       const url = row.original.url;
       return (
-        <div className="max-w-[300px]">
+        <div className='max-w-[300px]'>
           <a
             href={url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-medium hover:text-primary hover:underline flex items-center gap-1"
+            target='_blank'
+            rel='noopener noreferrer'
+            className='flex items-center gap-1 font-medium hover:text-primary hover:underline'
           >
-            <span className="truncate">{title}</span>
-            <ExternalLink className="h-3 w-3 flex-shrink-0" />
+            <span className='truncate'>{title}</span>
+            <ExternalLink className='h-3 w-3 flex-shrink-0' />
           </a>
         </div>
       );
@@ -75,7 +106,7 @@ export const contentItemsColumns: ColumnDef<ContentItem>[] = [
     cell: ({ row }) => {
       const description = row.getValue('description') as string | null;
       return (
-        <div className="max-w-[200px] truncate text-sm text-muted-foreground">
+        <div className='max-w-[200px] truncate text-sm text-muted-foreground'>
           {description || 'No description'}
         </div>
       );
@@ -86,11 +117,7 @@ export const contentItemsColumns: ColumnDef<ContentItem>[] = [
     header: 'Source',
     cell: ({ row }) => {
       const source = row.original.source;
-      return (
-        <Badge variant="outline">
-          {source?.name || 'Unknown'}
-        </Badge>
-      );
+      return <Badge variant='outline'>{source?.name || 'Unknown'}</Badge>;
     },
   },
   {
@@ -126,12 +153,8 @@ export const contentItemsColumns: ColumnDef<ContentItem>[] = [
             return 'outline';
         }
       };
-      
-      return (
-        <Badge variant={getStatusVariant(status)}>
-          {status}
-        </Badge>
-      );
+
+      return <Badge variant={getStatusVariant(status)}>{status}</Badge>;
     },
   },
   {
@@ -139,20 +162,18 @@ export const contentItemsColumns: ColumnDef<ContentItem>[] = [
     header: ({ column }) => {
       return (
         <Button
-          variant="ghost"
+          variant='ghost'
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
         >
           Published
-          <ArrowUpDown className="ml-2 h-4 w-4" />
+          <ArrowUpDown className='ml-2 h-4 w-4' />
         </Button>
       );
     },
     cell: ({ row }) => {
       const publishedAt = row.getValue('publishedAt') as string;
       return (
-        <div className="text-sm">
-          {new Date(publishedAt).toLocaleString()}
-        </div>
+        <div className='text-sm'>{new Date(publishedAt).toLocaleString()}</div>
       );
     },
   },
@@ -161,20 +182,18 @@ export const contentItemsColumns: ColumnDef<ContentItem>[] = [
     header: ({ column }) => {
       return (
         <Button
-          variant="ghost"
+          variant='ghost'
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
         >
           Added
-          <ArrowUpDown className="ml-2 h-4 w-4" />
+          <ArrowUpDown className='ml-2 h-4 w-4' />
         </Button>
       );
     },
     cell: ({ row }) => {
       const createdAt = row.getValue('createdAt') as string;
       return (
-        <div className="text-sm">
-          {new Date(createdAt).toLocaleString()}
-        </div>
+        <div className='text-sm'>{new Date(createdAt).toLocaleString()}</div>
       );
     },
   },
@@ -187,12 +206,12 @@ export const contentItemsColumns: ColumnDef<ContentItem>[] = [
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
+            <Button variant='ghost' className='h-8 w-8 p-0'>
+              <span className='sr-only'>Open menu</span>
+              <MoreHorizontal className='h-4 w-4' />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align='end'>
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuItem
               onClick={() => navigator.clipboard.writeText(contentItem.id)}
@@ -208,17 +227,26 @@ export const contentItemsColumns: ColumnDef<ContentItem>[] = [
             <DropdownMenuItem>
               <a
                 href={contentItem.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2"
+                target='_blank'
+                rel='noopener noreferrer'
+                className='flex items-center gap-2'
               >
                 Open link
-                <ExternalLink className="h-3 w-3" />
+                <ExternalLink className='h-3 w-3' />
               </a>
             </DropdownMenuItem>
+            {isTorrentUrl(contentItem.url) && (
+              <DropdownMenuItem
+                onClick={() => handleDownloadTorrent(contentItem)}
+                className="flex items-center gap-2"
+              >
+                <Download className="h-3 w-3" />
+                Download Torrent
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem>Queue for processing</DropdownMenuItem>
             <DropdownMenuItem>Mark notification as sent</DropdownMenuItem>
-            <DropdownMenuItem className="text-destructive">
+            <DropdownMenuItem className='text-destructive'>
               Delete item
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -226,4 +254,4 @@ export const contentItemsColumns: ColumnDef<ContentItem>[] = [
       );
     },
   },
-]; 
+];

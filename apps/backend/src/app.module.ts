@@ -16,6 +16,8 @@ import { JwtModule } from '@nestjs/jwt';
 import { UsersModule } from '@/users/users.module';
 import { ContentMonitoringModule } from '@/content-monitoring/content-monitoring.module';
 import { SourcesModule } from '@/sources/sources.module';
+import { QueueModule } from '@/queue/queue.module';
+import { ContentItemsModule } from '@/content-items/content-items.module';
 
 @Module({
   imports: [
@@ -30,6 +32,15 @@ import { SourcesModule } from '@/sources/sources.module';
         APP_JWT_SECRET: Joi.string().required(),
         TELEGRAM_BOT_TOKEN: Joi.string().optional(),
         TELEGRAM_CHAT_ID: Joi.string().optional(),
+        REDIS_HOST: Joi.string().optional(),
+        REDIS_PORT: Joi.number().optional(),
+        REDIS_PASSWORD: Joi.string().optional(),
+        MINIO_ENDPOINT: Joi.string().optional(),
+        MINIO_PORT: Joi.number().optional(),
+        MINIO_USE_SSL: Joi.string().optional(),
+        MINIO_ACCESS_KEY: Joi.string().optional(),
+        MINIO_SECRET_KEY: Joi.string().optional(),
+        MINIO_BUCKET_NAME: Joi.string().optional(),
       }),
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
@@ -50,6 +61,8 @@ import { SourcesModule } from '@/sources/sources.module';
     PrismaModule,
     ContentMonitoringModule,
     SourcesModule,
+    QueueModule,
+    ContentItemsModule,
   ],
   providers: [PrismaService, GoogleStrategy, JwtStrategy],
 })
