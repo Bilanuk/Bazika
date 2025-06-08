@@ -6,6 +6,9 @@ import { ContentItemsRepository } from './content-items.repository';
 import { RssMonitoringService } from './rss-monitoring.service';
 import { NotificationService } from './notification.service';
 import { TelegramService } from './telegram.service';
+import { AnimeParserService } from './anime-parser.service';
+import { SerialEpisodeService } from './serial-episode.service';
+import { AniListService } from './anilist.service';
 import { ContentMonitoringController } from './content-monitoring.controller';
 import { SourcesModule } from '../sources/sources.module';
 import { PrismaModule } from '../prisma/prisma.module';
@@ -20,7 +23,10 @@ import { PrismaModule } from '../prisma/prisma.module';
     RssMonitoringService,
     NotificationService,
     TelegramService,
+    AnimeParserService,
+    SerialEpisodeService,
+    AniListService,
   ],
   exports: [ContentMonitoringService, ContentItemsService],
 })
-export class ContentMonitoringModule {} 
+export class ContentMonitoringModule {}

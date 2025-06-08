@@ -1,10 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { RefreshCw, Plus, AlertCircle, ArrowRight } from 'lucide-react';
+import { RefreshCw, Plus, AlertCircle, ArrowRight, Database } from 'lucide-react';
 import { Source, ContentItem, ProcessingStatus } from '@/hooks/useSources';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import Link from 'next/link';
@@ -28,7 +28,27 @@ async function fetchContentItems(): Promise<ContentItem[]> {
   return data.contentItems || [];
 }
 
+// AniList sync function
+async function syncAniList(limit: number = 10): Promise<void> {
+  // Call backend directly instead of using proxy
+  const backendUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/graphql', '') || 'http://localhost:4001';
+  const response = await fetch(`${backendUrl}/content-monitoring/sync-anilist?limit=${limit}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+  
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+  }
+}
+
 export default function AdminDashboard() {
+  const [isAniListSyncing, setIsAniListSyncing] = useState(false);
+  const [aniListMessage, setAniListMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
   // React Query hooks
   const {
     data: sources = [],
@@ -54,6 +74,31 @@ export default function AdminDashboard() {
 
   const handleRefresh = async () => {
     await Promise.all([refetchSources(), refetchContentItems()]);
+  };
+
+  const handleAniListSync = async (limit: number = 10) => {
+    setIsAniListSyncing(true);
+    setAniListMessage(null);
+    try {
+      await syncAniList(limit);
+      setAniListMessage({
+        type: 'success',
+        text: `AniList sync started for up to ${limit} serials. This may take a few minutes.`,
+      });
+      
+      // Refetch data to show updated images and information
+      await handleRefresh();
+      
+      // Clear message after 5 seconds
+      setTimeout(() => setAniListMessage(null), 5000);
+    } catch (error) {
+      setAniListMessage({
+        type: 'error',
+        text: error instanceof Error ? error.message : 'An unknown error occurred',
+      });
+    } finally {
+      setIsAniListSyncing(false);
+    }
   };
 
   const isLoading = sourcesLoading || contentItemsLoading;
@@ -87,6 +132,15 @@ export default function AdminDashboard() {
             <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleAniListSync(10)}
+            disabled={isAniListSyncing}
+          >
+            <Database className={`h-4 w-4 mr-2 ${isAniListSyncing ? 'animate-spin' : ''}`} />
+            Sync AniList
+          </Button>
           <Button size="sm">
             <Plus className="h-4 w-4 mr-2" />
             Add Source
@@ -100,6 +154,16 @@ export default function AdminDashboard() {
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
             {sourcesError?.message || contentItemsError?.message || 'An error occurred'}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* AniList Sync Message */}
+      {aniListMessage && (
+        <Alert variant={aniListMessage.type === 'error' ? 'destructive' : 'default'}>
+          <Database className="h-4 w-4" />
+          <AlertDescription>
+            {aniListMessage.text}
           </AlertDescription>
         </Alert>
       )}
@@ -153,7 +217,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader>
             <CardTitle>Content Sources</CardTitle>
@@ -200,6 +264,52 @@ export default function AdminDashboard() {
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>AniList Integration</CardTitle>
+            <CardDescription>
+              Sync anime series with AniList for rich metadata
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium">Sync Options</p>
+                  <p className="text-xs text-muted-foreground">
+                    Enrich series with covers & descriptions
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleAniListSync(5)}
+                  disabled={isAniListSyncing}
+                  className="flex-1"
+                >
+                  <Database className={`h-3 w-3 mr-1 ${isAniListSyncing ? 'animate-spin' : ''}`} />
+                  Sync 5
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleAniListSync(20)}
+                  disabled={isAniListSyncing}
+                  className="flex-1"
+                >
+                  <Database className={`h-3 w-3 mr-1 ${isAniListSyncing ? 'animate-spin' : ''}`} />
+                  Sync 20
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                ⚡ Rate limited to 30 requests/min. Syncing is automatic and respectful.
+              </p>
             </div>
           </CardContent>
         </Card>

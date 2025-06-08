@@ -12,6 +12,11 @@ export class ContentItemsService {
   async createContentItem(
     sourceId: string,
     contentData: IContentItem,
+    options?: {
+      serialId?: string;
+      episodeId?: string;
+      infoHash?: string;
+    },
   ): Promise<ContentItem | null> {
     try {
       // Check if item already exists
@@ -23,7 +28,7 @@ export class ContentItemsService {
         return null;
       }
 
-      // Create new content item
+      // Create new content item with optional links
       const newItem = await this.contentItemsRepository.create({
         title: contentData.title,
         description: contentData.description,
@@ -31,6 +36,9 @@ export class ContentItemsService {
         guid: contentData.guid,
         publishedAt: contentData.publishedAt,
         source: { connect: { id: sourceId } },
+        ...(options?.serialId && { serial: { connect: { id: options.serialId } } }),
+        ...(options?.episodeId && { episode: { connect: { id: options.episodeId } } }),
+        ...(options?.infoHash && { infoHash: options.infoHash }),
       });
 
       this.logger.log(`Created new content item: ${newItem.title}`);
@@ -59,5 +67,13 @@ export class ContentItemsService {
 
   async getItemsBySource(sourceId: string): Promise<ContentItem[]> {
     return this.contentItemsRepository.findBySourceId(sourceId);
+  }
+
+  async getItemsBySerial(serialId: string): Promise<ContentItem[]> {
+    return this.contentItemsRepository.findBySerialId(serialId);
+  }
+
+  async getItemsByEpisode(episodeId: string): Promise<ContentItem[]> {
+    return this.contentItemsRepository.findByEpisodeId(episodeId);
   }
 } 

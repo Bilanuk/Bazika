@@ -1,6 +1,7 @@
-import { Controller, Post, Get, Body, Logger } from '@nestjs/common';
+import { Controller, Post, Get, Body, Logger, Query } from '@nestjs/common';
 import { ContentMonitoringService } from './content-monitoring.service';
 import { NotificationService } from './notification.service';
+import { SerialEpisodeService } from './serial-episode.service';
 import { Public } from '@/decorators';
 
 @Controller('content-monitoring')
@@ -10,6 +11,7 @@ export class ContentMonitoringController {
   constructor(
     private contentMonitoringService: ContentMonitoringService,
     private notificationService: NotificationService,
+    private serialEpisodeService: SerialEpisodeService,
   ) {}
 
   @Public()
@@ -28,6 +30,19 @@ export class ContentMonitoringController {
       success: true,
       message: `Manual monitoring completed`,
       data: result,
+    };
+  }
+
+  @Post('sync-anilist')
+  async syncAniList(@Query('limit') limit?: string) {
+    this.logger.log('Starting AniList sync');
+    const syncLimit = limit ? parseInt(limit, 10) : 10;
+
+    await this.serialEpisodeService.syncExistingSerialsWithAniList(syncLimit);
+
+    return {
+      success: true,
+      message: `AniList sync completed for up to ${syncLimit} serials`,
     };
   }
 

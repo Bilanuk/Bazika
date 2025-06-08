@@ -17,18 +17,33 @@ model Serial {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   imageUrl    String    @default("")
+  
+  // AniList integration fields
+  anilistId   Int?      // AniList anime ID
+  coverImage  String?   // Large cover image URL
+  bannerImage String?   // Banner image URL
+  titleRomaji String?   // Romaji title from AniList
+  titleEnglish String?  // English title from AniList
+  titleNative String?   // Native title from AniList
+  anilistDescription String? // Rich description from AniList
+  lastAnilistSync DateTime? // When we last synced with AniList
+  
   episodes    Episode[]
+  contentItems ContentItem[]
 }
 
 model Episode {
   id            String   @id @default(uuid())
   title         String
-  url           String
+  url           String   @default("")
   serialId      String
   episodeNumber Int
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   serial        Serial   @relation(fields: [serialId], references: [id])
+  contentItems  ContentItem[]
+
+  @@unique([serialId, episodeNumber])
 }
 
 model Toilet {
@@ -138,11 +153,16 @@ model ContentItem {
   guid             String           @unique // RSS GUID or unique identifier
   publishedAt      DateTime
   sourceId         String
+  serialId         String?          // Optional link to serial
+  episodeId        String?          // Optional link to episode
+  infoHash         String?          // For torrent content
   notificationSent Boolean          @default(false) // Renamed from 'processed' - indicates if notifications were sent
   processingStatus ProcessingStatus @default(PENDING) // New field for video processing workflow
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
   source           Source           @relation(fields: [sourceId], references: [id])
+  serial           Serial?          @relation(fields: [serialId], references: [id])
+  episode          Episode?         @relation(fields: [episodeId], references: [id])
 }
 
 model NotificationChannel {

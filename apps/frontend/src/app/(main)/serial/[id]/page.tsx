@@ -42,8 +42,23 @@ export default async function SerialPage({ params, searchParams }: Props) {
       <Head>
         <title>{serial.title}</title>
       </Head>
+      
+      {serial.bannerImage && (
+        <div className='relative -mt-16 h-80 overflow-hidden'>
+          <Image
+            src={serial.bannerImage}
+            alt={`${serial.title} banner`}
+            fill
+            className='object-cover'
+            priority
+          />
+          {/* Gradient overlay */}
+          <div className='absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background' />
+        </div>
+      )}
+      
       <PageWrapper>
-        <div className='relative col-span-4 mb-8 grid grid-cols-4 gap-8 overflow-hidden rounded-xl bg-background/30 p-8 ring-1 ring-border/5 backdrop-blur-sm'>
+        <div className={`relative col-span-4 mb-8 grid grid-cols-4 gap-8 ${serial.bannerImage ? '-mt-24' : ''}`}>
           <div className='col-span-1'>
             <div className='relative aspect-[2/3] w-full'>
               <Image

@@ -4,6 +4,7 @@ import { SourcesService } from '../sources/sources.service';
 import { ContentItemsService } from './content-items.service';
 import { RssMonitoringService } from './rss-monitoring.service';
 import { NotificationService } from './notification.service';
+import { SerialEpisodeService } from './serial-episode.service';
 import { SourceType } from '@database';
 
 @Injectable()
@@ -15,6 +16,7 @@ export class ContentMonitoringService {
     private contentItemsService: ContentItemsService,
     private rssMonitoringService: RssMonitoringService,
     private notificationService: NotificationService,
+    private serialEpisodeService: SerialEpisodeService,
   ) {}
 
   // Run every 15 minutes
@@ -44,15 +46,42 @@ export class ContentMonitoringService {
                 ) {
                   continue;
                 }
-              }
 
-              const newItem = await this.contentItemsService.createContentItem(
-                source.id,
-                contentData,
-              );
+                // Process anime content and link to serial/episode
+                const { serial, episode } =
+                  await this.serialEpisodeService.processAnimeContent(
+                    contentData.title,
+                    contentData.url,
+                  );
 
-              if (newItem) {
-                newContentItems.push(newItem);
+                const newItem =
+                  await this.contentItemsService.createContentItem(
+                    source.id,
+                    contentData,
+                    {
+                      serialId: serial?.id,
+                      episodeId: episode?.id,
+                      infoHash: contentData.infoHash,
+                    },
+                  );
+
+                if (newItem) {
+                  newContentItems.push(newItem);
+                }
+              } else {
+                // For non-anime sources, create content item without linking
+                const newItem =
+                  await this.contentItemsService.createContentItem(
+                    source.id,
+                    contentData,
+                    {
+                      infoHash: contentData.infoHash,
+                    },
+                  );
+
+                if (newItem) {
+                  newContentItems.push(newItem);
+                }
               }
             }
 
@@ -104,10 +133,34 @@ export class ContentMonitoringService {
           await this.rssMonitoringService.fetchRSSFeed(source);
 
         for (const contentData of contentItems) {
-          const newItem = await this.contentItemsService.createContentItem(
-            source.id,
-            contentData,
-          );
+          let newItem;
+
+          if (source.name.toLowerCase().includes('nyaa')) {
+            // Process anime content
+            const { serial, episode } =
+              await this.serialEpisodeService.processAnimeContent(
+                contentData.title,
+                contentData.url,
+              );
+
+            newItem = await this.contentItemsService.createContentItem(
+              source.id,
+              contentData,
+              {
+                serialId: serial?.id,
+                episodeId: episode?.id,
+                infoHash: contentData.infoHash,
+              },
+            );
+          } else {
+            newItem = await this.contentItemsService.createContentItem(
+              source.id,
+              contentData,
+              {
+                infoHash: contentData.infoHash,
+              },
+            );
+          }
 
           if (newItem) {
             totalNewItems++;
@@ -149,6 +202,9 @@ export class ContentMonitoringService {
         publishedAt: item.publishedAt,
         notificationSent: item.notificationSent,
         processingStatus: item.processingStatus,
+        serialId: item.serialId,
+        episodeId: item.episodeId,
+        infoHash: item.infoHash,
       })),
     };
   }

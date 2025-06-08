@@ -76,6 +76,7 @@ export class RssMonitoringService {
         url: item.link,
         guid: item.guid,
         publishedAt,
+        infoHash: item['nyaa:infoHash'],
       };
     } catch (error) {
       this.logger.error(
