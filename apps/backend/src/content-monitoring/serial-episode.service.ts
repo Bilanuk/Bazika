@@ -73,11 +73,8 @@ export class SerialEpisodeService {
       // Fetch AniList data for new serial
       await this.enrichSerialWithAniListData(serial, parsedTitle.seriesName);
     } else {
-      this.logger.debug(`Found existing serial: ${serial.title}`);
-
       // Check if we need to update AniList data
       if (this.aniListService.needsAniListSync(serial)) {
-        this.logger.debug(`Serial needs AniList sync: ${serial.title}`);
         await this.enrichSerialWithAniListData(serial, parsedTitle.seriesName);
       }
     }
@@ -93,13 +90,10 @@ export class SerialEpisodeService {
     searchTerm: string,
   ): Promise<void> {
     try {
-      this.logger.log(`Searching AniList for: ${searchTerm}`);
-
       // Search for anime on AniList
       const searchResults = await this.aniListService.searchAnime(searchTerm);
 
       if (searchResults.length === 0) {
-        this.logger.debug(`No AniList results found for: ${searchTerm}`);
         return;
       }
 
@@ -119,8 +113,6 @@ export class SerialEpisodeService {
           serial.id,
           bestMatch,
         );
-      } else {
-        this.logger.debug(`No good AniList match found for: ${searchTerm}`);
       }
     } catch (error) {
       this.logger.error(
@@ -138,7 +130,6 @@ export class SerialEpisodeService {
     contentUrl: string,
   ): Promise<Episode | null> {
     if (!parsedTitle.episodeNumber) {
-      this.logger.debug('No episode number found, skipping episode creation');
       return null;
     }
 
@@ -206,10 +197,6 @@ export class SerialEpisodeService {
         serial,
         parsedTitle,
         contentUrl,
-      );
-
-      this.logger.log(
-        `Processed anime content: ${serial.title}${episode ? ` - ${episode.title}` : ''}`,
       );
 
       return { serial, episode, parsedTitle };

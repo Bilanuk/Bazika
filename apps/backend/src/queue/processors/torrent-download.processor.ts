@@ -58,13 +58,22 @@ export class TorrentDownloadProcessor extends WorkerHost {
         `Successfully uploaded ${downloadedFiles.length} files to MinIO`,
       );
 
-      // Update status to DOWNLOAD_COMPLETED
+      // Find the main video file
+      const mainVideoFile = this.findMainVideoFile(downloadedFiles);
+
+      // Update status to DOWNLOAD_COMPLETED and store video filename
       await this.prisma.contentItem.update({
         where: { id: contentItemId },
-        data: { processingStatus: 'DOWNLOAD_COMPLETED' },
+        data: {
+          processingStatus: 'DOWNLOAD_COMPLETED',
+          downloadedFileName: mainVideoFile?.name?.trim() || null,
+        },
       });
 
       this.logger.log(`Successfully completed torrent download job: ${job.id}`);
+      if (mainVideoFile) {
+        this.logger.log(`Main video file: ${mainVideoFile.name}`);
+      }
     } catch (error) {
       this.logger.error(
         `Failed to process torrent download job ${job.id}: ${error.message}`,
@@ -94,6 +103,7 @@ export class TorrentDownloadProcessor extends WorkerHost {
         'aria2c',
         '--bt-metadata-only=false',
         '--bt-save-metadata=false',
+        '--bt-remove-unselected-file=true',
         '--seed-time=0',
         '--max-connection-per-server=16',
         '--max-concurrent-downloads=16',
@@ -101,6 +111,7 @@ export class TorrentDownloadProcessor extends WorkerHost {
         '--min-split-size=1M',
         '--continue=true',
         '--allow-overwrite=true',
+        '--follow-torrent=mem',
         `--dir=${tempDir}`,
         `"${torrentUrl}"`,
       ].join(' ');
@@ -156,6 +167,12 @@ export class TorrentDownloadProcessor extends WorkerHost {
         if (entry.isDirectory()) {
           await readDirectory(fullPath, relativePath);
         } else if (entry.isFile()) {
+          // Skip .torrent metadata files
+          if (entry.name.endsWith('.torrent')) {
+            this.logger.log(`Skipping torrent metadata file: ${relativePath}`);
+            continue;
+          }
+
           const stats = await fs.promises.stat(fullPath);
           const buffer = await fs.promises.readFile(fullPath);
 
@@ -222,6 +239,24 @@ export class TorrentDownloadProcessor extends WorkerHost {
     };
 
     return mimeTypes[ext] || 'application/octet-stream';
+  }
+
+  private findMainVideoFile(
+    files: DownloadedFile[],
+  ): DownloadedFile | undefined {
+    const videoExtensions = [
+      '.mp4',
+      '.mkv',
+      '.avi',
+      '.mov',
+      '.wmv',
+      '.flv',
+      '.webm',
+    ];
+
+    return files.find((file) =>
+      videoExtensions.some((ext) => file.name.toLowerCase().endsWith(ext)),
+    );
   }
 }
 

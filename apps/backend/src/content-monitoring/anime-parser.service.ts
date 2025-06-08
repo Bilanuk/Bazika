@@ -15,7 +15,6 @@ export class AnimeParserService {
 
   parseAnimeTitle(title: string): ParsedAnimeTitle | null {
     try {
-      this.logger.debug(`Parsing title: ${title}`);
 
       // Remove file extension
       const cleanTitle = title.replace(/\.(mkv|mp4|avi)$/i, '');
@@ -93,7 +92,6 @@ export class AnimeParserService {
         originalTitle: title,
       };
 
-      this.logger.debug(`Parsed result:`, result);
       return result;
     } catch (error) {
       this.logger.error(`Failed to parse title "${title}": ${error.message}`);

@@ -12,6 +12,7 @@ export class BullBoardService {
 
   constructor(
     @InjectQueue('torrent-download') private torrentDownloadQueue: Queue,
+    @InjectQueue('video-processing') private videoProcessingQueue: Queue,
   ) {
     this.setupBullBoard();
   }
@@ -21,7 +22,10 @@ export class BullBoardService {
     this.serverAdapter.setBasePath('/admin/queues');
 
     createBullBoard({
-      queues: [new BullMQAdapter(this.torrentDownloadQueue)],
+      queues: [
+        new BullMQAdapter(this.torrentDownloadQueue),
+        new BullMQAdapter(this.videoProcessingQueue),
+      ],
       serverAdapter: this.serverAdapter,
     });
 

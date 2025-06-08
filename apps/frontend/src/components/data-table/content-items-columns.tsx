@@ -6,6 +6,7 @@ import {
   ExternalLink,
   MoreHorizontal,
   Download,
+  Play,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -41,9 +42,38 @@ const handleDownloadTorrent = async (contentItem: ContentItem) => {
   }
 };
 
+// Helper function to handle video processing
+const handleProcessVideo = async (contentItem: ContentItem) => {
+  try {
+    const response = await fetch(`/api/content-items/${contentItem.id}/process`, {
+      method: 'POST',
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Failed to queue video processing');
+    }
+
+    // Show success message (you can replace with proper toast notification)
+    alert('Video processing queued successfully!');
+  } catch (error) {
+    console.error('Error queuing video processing:', error);
+    // Show error message (you can replace with proper toast notification)
+    alert(`Failed to queue video processing: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+};
+
 // Helper function to check if URL is a torrent
 const isTorrentUrl = (url: string): boolean => {
   return url.startsWith('magnet:') || url.endsWith('.torrent');
+};
+
+// Helper function to check if content item can be processed
+const canProcessVideo = (contentItem: ContentItem): boolean => {
+  return (
+    contentItem.processingStatus === ProcessingStatus.DOWNLOAD_COMPLETED ||
+    contentItem.processingStatus === ProcessingStatus.PROCESSING_FAILED
+  );
 };
 
 export const contentItemsColumns: ColumnDef<ContentItem>[] = [
@@ -139,15 +169,20 @@ export const contentItemsColumns: ColumnDef<ContentItem>[] = [
       const status = row.getValue('processingStatus') as ProcessingStatus;
       const getStatusVariant = (status: ProcessingStatus) => {
         switch (status) {
-          case ProcessingStatus.COMPLETED:
+          case ProcessingStatus.PROCESSING_COMPLETED:
             return 'default';
           case ProcessingStatus.PROCESSING:
+          case ProcessingStatus.DOWNLOADING:
             return 'secondary';
-          case ProcessingStatus.QUEUED:
+          case ProcessingStatus.DOWNLOAD_QUEUED:
+          case ProcessingStatus.PROCESSING_QUEUED:
             return 'outline';
-          case ProcessingStatus.FAILED:
+          case ProcessingStatus.DOWNLOAD_FAILED:
+          case ProcessingStatus.PROCESSING_FAILED:
             return 'destructive';
-          case ProcessingStatus.SKIPPED:
+          case ProcessingStatus.DOWNLOAD_COMPLETED:
+            return 'default';
+          case ProcessingStatus.PROCESSING_SKIPPED:
             return 'secondary';
           default:
             return 'outline';
@@ -244,7 +279,17 @@ export const contentItemsColumns: ColumnDef<ContentItem>[] = [
                 Download Torrent
               </DropdownMenuItem>
             )}
-            <DropdownMenuItem>Queue for processing</DropdownMenuItem>
+            {canProcessVideo(contentItem) && (
+              <DropdownMenuItem
+                onClick={() => handleProcessVideo(contentItem)}
+                className="flex items-center gap-2"
+              >
+                <Play className="h-3 w-3" />
+                {contentItem.processingStatus === ProcessingStatus.PROCESSING_FAILED 
+                  ? 'Retry Processing' 
+                  : 'Process Video'}
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem>Mark notification as sent</DropdownMenuItem>
             <DropdownMenuItem className='text-destructive'>
               Delete item

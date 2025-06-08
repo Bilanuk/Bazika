@@ -13,6 +13,7 @@ import { TypographyH3, TypographyP } from './ui/Typography';
 import { ScrollArea } from './ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { AlertCircle } from 'lucide-react';
+import { getVideoUrl } from '@/lib/video-utils';
 
 // Override Vidstack styles
 const styles = `
@@ -100,7 +101,7 @@ export default function VideoPlayer({
           ) : (
             <MediaPlayer
               title={currentEpisode.title}
-              src={currentEpisode.url}
+              src={getVideoUrl(currentEpisode.url)} // Constructs correct URL based on environment
               aspectRatio='16/9'
               onError={() => setIsError(true)}
               className='h-[600px]'

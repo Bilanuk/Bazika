@@ -219,7 +219,6 @@ export class AniListService {
       return bestMatch.anime;
     }
 
-    this.logger.debug(`No good match found for "${originalTitle}"`);
     return null;
   }
 

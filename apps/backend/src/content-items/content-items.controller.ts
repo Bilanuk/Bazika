@@ -46,4 +46,51 @@ export class ContentItemsController {
       );
     }
   }
+
+  @Post(':id/process')
+  async queueProcessing(@Param('id') contentItemId: string) {
+    try {
+      await this.contentItemsService.queueVideoProcessing(contentItemId);
+
+      return {
+        success: true,
+        message: 'Video processing queued successfully',
+        contentItemId,
+      };
+    } catch (error) {
+      this.logger.error(
+        `Failed to queue processing for content item ${contentItemId}: ${error.message}`,
+      );
+
+      if (error.message.includes('not found')) {
+        throw new HttpException('Content item not found', HttpStatus.NOT_FOUND);
+      }
+
+      if (error.message.includes('not associated with an episode')) {
+        throw new HttpException(
+          'Content item is not associated with an episode',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      if (error.message.includes('must be downloaded before processing')) {
+        throw new HttpException(
+          'Content item must be downloaded before processing',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      if (error.message.includes('No video file found')) {
+        throw new HttpException(
+          'No video file found for this content item',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      throw new HttpException(
+        'Failed to queue video processing',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
 }
