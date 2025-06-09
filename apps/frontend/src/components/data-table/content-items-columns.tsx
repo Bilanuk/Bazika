@@ -157,6 +157,42 @@ export const contentItemsColumns: ColumnDef<ContentItem>[] = [
     },
   },
   {
+    accessorKey: 'serial.title',
+    header: 'Serial',
+    cell: ({ row }) => {
+      const serial = row.original.serial;
+      return serial ? (
+        <Badge variant='default'>{serial.title}</Badge>
+      ) : (
+        <span className='text-muted-foreground text-sm'>No serial</span>
+      );
+    },
+    filterFn: (row, columnId, filterValue) => {
+      if (!filterValue || filterValue.length === 0) return true;
+      const serial = row.original.serial;
+      const serialTitle = serial?.title || 'No serial';
+      return filterValue.includes(serialTitle);
+    },
+  },
+  {
+    accessorKey: 'episode.episodeNumber',
+    header: 'Episode',
+    cell: ({ row }) => {
+      const episode = row.original.episode;
+      return episode ? (
+        <Badge variant='secondary'>Ep. {episode.episodeNumber}</Badge>
+      ) : (
+        <span className='text-muted-foreground text-sm'>No episode</span>
+      );
+    },
+    filterFn: (row, columnId, filterValue) => {
+      if (!filterValue || filterValue.length === 0) return true;
+      const episode = row.original.episode;
+      const episodeNumber = episode?.episodeNumber?.toString() || 'No episode';
+      return filterValue.includes(episodeNumber);
+    },
+  },
+  {
     accessorKey: 'notificationSent',
     header: 'Notifications',
     cell: ({ row }) => {

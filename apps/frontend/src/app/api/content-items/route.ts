@@ -18,6 +18,8 @@ export async function GET(request: NextRequest) {
     const processingStatusFilter = searchParams.get('processingStatus');
     const notificationSentFilter = searchParams.get('notificationSent');
     const sourceNameFilter = searchParams.get('sourceName');
+    const serialTitleFilter = searchParams.get('serialTitle');
+    const episodeNumberFilter = searchParams.get('episodeNumber');
 
     // Build where clause
     const where: any = {};
@@ -57,6 +59,28 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Serial title filter
+    if (serialTitleFilter) {
+      const serialTitles = serialTitleFilter.split(',');
+      where.serial = {
+        title: {
+          in: serialTitles
+        }
+      };
+    }
+
+    // Episode number filter
+    if (episodeNumberFilter) {
+      const episodeNumbers = episodeNumberFilter.split(',').map(num => parseInt(num)).filter(num => !isNaN(num));
+      if (episodeNumbers.length > 0) {
+        where.episode = {
+          episodeNumber: {
+            in: episodeNumbers
+          }
+        };
+      }
+    }
+
     // Search filter
     if (search) {
       where.OR = [
@@ -71,6 +95,14 @@ export async function GET(request: NextRequest) {
             contains: search,
             mode: 'insensitive'
           }
+        },
+        {
+          serial: {
+            title: {
+              contains: search,
+              mode: 'insensitive'
+            }
+          }
         }
       ];
     }
@@ -83,7 +115,11 @@ export async function GET(request: NextRequest) {
     // Get filtered content items
     const contentItems = await prisma.contentItem.findMany({
       where,
-      include: { source: true },
+      include: { 
+        source: true,
+        serial: true,
+        episode: true
+      },
       orderBy: { publishedAt: 'desc' },
       take: limit,
       skip: offset

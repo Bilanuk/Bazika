@@ -12,6 +12,26 @@ export interface Source {
   contentItems?: ContentItem[];
 }
 
+export interface Serial {
+  id: string;
+  title: string;
+  description: string;
+  rating: number;
+  imageUrl: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Episode {
+  id: string;
+  title: string;
+  url: string;
+  serialId: string;
+  episodeNumber: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface ContentItem {
   id: string;
   title: string;
@@ -20,11 +40,15 @@ export interface ContentItem {
   guid: string;
   publishedAt: string;
   sourceId: string;
+  serialId: string | null;
+  episodeId: string | null;
   notificationSent: boolean;
   processingStatus: ProcessingStatus;
   createdAt: string;
   updatedAt: string;
   source?: Source;
+  serial?: Serial;
+  episode?: Episode;
 }
 
 export enum ProcessingStatus {

@@ -9,6 +9,8 @@ import { DataTableServerSide, FilterConfig } from '@/components/data-table/data-
 import { contentItemsColumns } from '@/components/data-table/content-items-columns';
 import { ContentItem, ProcessingStatus } from '@/hooks/useSources';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { EpisodeFilter } from '@/components/data-table/episode-filter';
+import { SerialFilter } from '@/components/data-table/serial-filter';
 import AdminOnly from '@/components/AdminOnly';
 
 // Fetch function for React Query with filters
@@ -34,6 +36,10 @@ async function fetchContentItems(
     if (values.length > 0) {
       if (key === 'source.name') {
         params.append('sourceName', values.join(','));
+      } else if (key === 'serial.title') {
+        params.append('serialTitle', values.join(','));
+      } else if (key === 'episode.episodeNumber') {
+        params.append('episodeNumber', values.join(','));
       } else {
         params.append(key, values.join(','));
       }
@@ -51,11 +57,31 @@ async function fetchContentItems(
   };
 }
 
+// Fetch filter options
+async function fetchFilterOptions(): Promise<{
+  serials: Array<{ id: string; title: string }>;
+  episodes: Array<{ id: string; episodeNumber: number; title: string; serial: { title: string } }>;
+  sources: Array<{ id: string; name: string }>;
+}> {
+  const response = await fetch('/api/content-items/filters');
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+  return response.json();
+}
+
 export default function ContentItemsPage() {
   const [filters, setFilters] = React.useState<Record<string, string[]>>({});
   const [search, setSearch] = React.useState('');
   const [pagination, setPagination] = React.useState({ offset: 0, limit: 100 });
   const [isInitialized, setIsInitialized] = React.useState(false);
+
+  // Fetch filter options
+  const { data: filterOptions } = useQuery({
+    queryKey: ['content-items-filters'],
+    queryFn: fetchFilterOptions,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
   // React Query hook with dependencies on filters, search, and pagination
   const {
@@ -101,15 +127,41 @@ export default function ContentItemsPage() {
     setPagination({ offset, limit });
   }, []);
 
-  // Get unique sources for filter options (from current data)
-  const uniqueSources = React.useMemo(() => {
-    const sources = contentItems
-      .map(item => item.source?.name)
-      .filter((name): name is string => !!name);
-    return Array.from(new Set(sources)).sort();
-  }, [contentItems]);
+  // Handle serial filter changes
+  const handleSerialChange = React.useCallback((serialTitles: string[]) => {
+    const newFilters = { ...filters };
+    newFilters['serial.title'] = serialTitles;
+    setFilters(newFilters);
+    setPagination(prev => ({ ...prev, offset: 0 }));
+  }, [filters]);
 
-  // Filter configurations
+  // Handle episode filter changes
+  const handleEpisodeChange = React.useCallback((episodeNumbers: string[]) => {
+    const newFilters = { ...filters };
+    newFilters['episode.episodeNumber'] = episodeNumbers;
+    setFilters(newFilters);
+    setPagination(prev => ({ ...prev, offset: 0 }));
+  }, [filters]);
+
+  // Get selected serial IDs for episode filter dependency
+  const selectedSerialTitles = filters['serial.title'] || [];
+  const selectedSerialIds = React.useMemo(() => {
+    if (!filterOptions?.serials || selectedSerialTitles.length === 0) return [];
+    return filterOptions.serials
+      .filter(serial => selectedSerialTitles.includes(serial.title))
+      .map(serial => serial.id);
+  }, [filterOptions?.serials, selectedSerialTitles]);
+
+  // Clear episode filter when no serials are selected
+  React.useEffect(() => {
+    if (selectedSerialIds.length === 0 && filters['episode.episodeNumber']?.length > 0) {
+      const newFilters = { ...filters };
+      newFilters['episode.episodeNumber'] = [];
+      setFilters(newFilters);
+    }
+  }, [selectedSerialIds.length, filters]);
+
+  // Filter configurations (excluding serial and episode filters as they're now custom)
   const filterConfigs: FilterConfig[] = [
     {
       key: 'processingStatus',
@@ -132,7 +184,7 @@ export default function ContentItemsPage() {
       key: 'source.name',
       label: 'Source',
       type: 'multiselect',
-      options: uniqueSources.map(source => ({ value: source, label: source })),
+      options: filterOptions?.sources?.map(source => ({ value: source.name, label: source.name })) || [],
     },
     {
       key: 'notificationSent',
@@ -144,6 +196,22 @@ export default function ContentItemsPage() {
       ],
     },
   ];
+
+  // Custom filters component
+  const customFilters = (
+    <div className="flex items-center gap-2">
+      <SerialFilter
+        serials={filterOptions?.serials || []}
+        selectedSerialTitles={selectedSerialTitles}
+        onSerialChange={handleSerialChange}
+      />
+      <EpisodeFilter
+        selectedSerialIds={selectedSerialIds}
+        selectedEpisodeNumbers={filters['episode.episodeNumber'] || []}
+        onEpisodeChange={handleEpisodeChange}
+      />
+    </div>
+  );
 
   // Calculate statistics
   const pendingNotifications = contentItems.filter(item => !item.notificationSent).length;
@@ -261,6 +329,7 @@ export default function ContentItemsPage() {
               searchKey="title"
               searchPlaceholder="Search content items..."
               filters={filterConfigs}
+              customFilters={customFilters}
               storageKey="content-items"
               onFiltersChange={handleFiltersChange}
               onSearchChange={handleSearchChange}

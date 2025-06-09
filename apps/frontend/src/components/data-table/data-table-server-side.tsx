@@ -45,6 +45,7 @@ interface DataTableServerSideProps<TData, TValue> {
   searchKey?: string;
   searchPlaceholder?: string;
   filters?: FilterConfig[];
+  customFilters?: React.ReactNode;
   storageKey?: string;
   onFiltersChange?: (filters: Record<string, string[]>) => void;
   onSearchChange?: (search: string) => void;
@@ -64,6 +65,7 @@ export function DataTableServerSide<TData, TValue>({
   searchKey,
   searchPlaceholder = 'Search...',
   filters = [],
+  customFilters,
   storageKey,
   onFiltersChange,
   onSearchChange,
@@ -239,6 +241,7 @@ export function DataTableServerSide<TData, TValue>({
 
         {/* Filter Dropdowns */}
         <div className="flex items-center gap-2">
+          {customFilters}
           {filters.map((filter) => (
             <DropdownMenu key={filter.key}>
               <DropdownMenuTrigger asChild>
