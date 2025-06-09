@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { requireAdmin } from '@/lib/auth';
+import { ProcessingStatus } from '@database';
 
 export async function GET(request: NextRequest) {
   try {
@@ -8,19 +9,95 @@ export async function GET(request: NextRequest) {
     await requireAdmin();
     
     const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get('limit') || '20');
+    const limit = parseInt(searchParams.get('limit') || '100');
+    const offset = parseInt(searchParams.get('offset') || '0');
     const sourceId = searchParams.get('sourceId');
+    const search = searchParams.get('search');
+    
+    // Parse filter parameters
+    const processingStatusFilter = searchParams.get('processingStatus');
+    const notificationSentFilter = searchParams.get('notificationSent');
+    const sourceNameFilter = searchParams.get('sourceName');
 
-    const where = sourceId ? { sourceId } : {};
+    // Build where clause
+    const where: any = {};
 
+    // Source filter
+    if (sourceId) {
+      where.sourceId = sourceId;
+    }
+
+    // Source name filter (for multi-source filtering)
+    if (sourceNameFilter) {
+      const sourceNames = sourceNameFilter.split(',');
+      where.source = {
+        name: {
+          in: sourceNames
+        }
+      };
+    }
+
+    // Processing status filter
+    if (processingStatusFilter) {
+      const statuses = processingStatusFilter.split(',') as ProcessingStatus[];
+      where.processingStatus = {
+        in: statuses
+      };
+    }
+
+    // Notification sent filter
+    if (notificationSentFilter) {
+      const notificationValues = notificationSentFilter.split(',').map(val => val === 'true');
+      if (notificationValues.length === 1) {
+        where.notificationSent = notificationValues[0];
+      } else if (notificationValues.length > 1) {
+        where.notificationSent = {
+          in: notificationValues
+        };
+      }
+    }
+
+    // Search filter
+    if (search) {
+      where.OR = [
+        {
+          title: {
+            contains: search,
+            mode: 'insensitive'
+          }
+        },
+        {
+          description: {
+            contains: search,
+            mode: 'insensitive'
+          }
+        }
+      ];
+    }
+
+    console.log('Content items query where clause:', JSON.stringify(where, null, 2));
+
+    // Get total count for pagination
+    const totalCount = await prisma.contentItem.count({ where });
+
+    // Get filtered content items
     const contentItems = await prisma.contentItem.findMany({
       where,
       include: { source: true },
       orderBy: { publishedAt: 'desc' },
-      take: limit
+      take: limit,
+      skip: offset
     });
 
-    return NextResponse.json({ contentItems });
+    return NextResponse.json({ 
+      contentItems,
+      pagination: {
+        total: totalCount,
+        limit,
+        offset,
+        hasMore: offset + limit < totalCount
+      }
+    });
   } catch (error) {
     console.error('Error fetching content items:', error);
     

@@ -5,40 +5,103 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, AlertCircle } from 'lucide-react';
-import { DataTableWithFilters, FilterConfig } from '@/components/data-table/data-table-with-filters';
+import { DataTableServerSide, FilterConfig } from '@/components/data-table/data-table-server-side';
 import { contentItemsColumns } from '@/components/data-table/content-items-columns';
 import { ContentItem, ProcessingStatus } from '@/hooks/useSources';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import AdminOnly from '@/components/AdminOnly';
 
-// Fetch function for React Query
-async function fetchContentItems(): Promise<ContentItem[]> {
-  const response = await fetch('/api/content-items?limit=100');
+// Fetch function for React Query with filters
+async function fetchContentItems(
+  filters: Record<string, string[]> = {},
+  search: string = '',
+  offset: number = 0,
+  limit: number = 100
+): Promise<{ contentItems: ContentItem[]; pagination: any }> {
+  const params = new URLSearchParams();
+  
+  // Add pagination
+  params.append('limit', limit.toString());
+  params.append('offset', offset.toString());
+  
+  // Add search
+  if (search) {
+    params.append('search', search);
+  }
+  
+  // Add filters
+  Object.entries(filters).forEach(([key, values]) => {
+    if (values.length > 0) {
+      if (key === 'source.name') {
+        params.append('sourceName', values.join(','));
+      } else {
+        params.append(key, values.join(','));
+      }
+    }
+  });
+
+  const response = await fetch(`/api/content-items?${params.toString()}`);
   if (!response.ok) {
     throw new Error(`HTTP error! status: ${response.status}`);
   }
   const data = await response.json();
-  return data.contentItems || [];
+  return {
+    contentItems: data.contentItems || [],
+    pagination: data.pagination
+  };
 }
 
 export default function ContentItemsPage() {
-  // React Query hook
+  const [filters, setFilters] = React.useState<Record<string, string[]>>({});
+  const [search, setSearch] = React.useState('');
+  const [pagination, setPagination] = React.useState({ offset: 0, limit: 100 });
+  const [isInitialized, setIsInitialized] = React.useState(false);
+
+  // React Query hook with dependencies on filters, search, and pagination
   const {
-    data: contentItems = [],
+    data,
     isLoading: contentItemsLoading,
     error: contentItemsError,
     refetch: refetchContentItems,
   } = useQuery({
-    queryKey: ['content-items'],
-    queryFn: fetchContentItems,
+    queryKey: ['content-items', filters, search, pagination],
+    queryFn: () => fetchContentItems(filters, search, pagination.offset, pagination.limit),
     staleTime: 2 * 60 * 1000, // 2 minutes
+    enabled: isInitialized, // Only run query after component is initialized
   });
+
+  const contentItems = data?.contentItems || [];
+  const paginationData = data?.pagination;
+
+  // Initialize the component after a short delay to allow localStorage to load
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsInitialized(true);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleRefresh = async () => {
     await refetchContentItems();
   };
 
-  // Get unique sources for filter options
+  const handleFiltersChange = React.useCallback((newFilters: Record<string, string[]>) => {
+    setFilters(newFilters);
+    setPagination(prev => ({ ...prev, offset: 0 })); // Reset to first page when filters change
+    setIsInitialized(true); // Mark as initialized when filters change
+  }, []);
+
+  const handleSearchChange = React.useCallback((newSearch: string) => {
+    setSearch(newSearch);
+    setPagination(prev => ({ ...prev, offset: 0 })); // Reset to first page when search changes
+    setIsInitialized(true); // Mark as initialized when search changes
+  }, []);
+
+  const handlePaginationChange = React.useCallback((offset: number, limit: number) => {
+    setPagination({ offset, limit });
+  }, []);
+
+  // Get unique sources for filter options (from current data)
   const uniqueSources = React.useMemo(() => {
     const sources = contentItems
       .map(item => item.source?.name)
@@ -47,7 +110,7 @@ export default function ContentItemsPage() {
   }, [contentItems]);
 
   // Filter configurations
-  const filters: FilterConfig[] = [
+  const filterConfigs: FilterConfig[] = [
     {
       key: 'processingStatus',
       label: 'Status',
@@ -141,7 +204,7 @@ export default function ContentItemsPage() {
               <CardTitle className="text-sm font-medium">Total Items</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{contentItems.length}</div>
+              <div className="text-2xl font-bold">{paginationData?.total || contentItems.length}</div>
               <p className="text-xs text-muted-foreground">
                 {pendingNotifications} pending notifications
               </p>
@@ -187,25 +250,24 @@ export default function ContentItemsPage() {
           <CardHeader>
             <CardTitle>Content Items</CardTitle>
             <CardDescription>
-              Monitor and manage content items from all sources. Total: {contentItems.length} items
+              Monitor and manage content items from all sources. 
+              {paginationData ? ` Total: ${paginationData.total} items` : ` Showing: ${contentItems.length} items`}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {contentItemsLoading ? (
-              <div className="flex items-center justify-center h-32">
-                <RefreshCw className="h-6 w-6 animate-spin" />
-                <span className="ml-2">Loading content items...</span>
-              </div>
-            ) : (
-              <DataTableWithFilters
-                columns={contentItemsColumns}
-                data={contentItems}
-                searchKey="title"
-                searchPlaceholder="Search content items..."
-                filters={filters}
-                storageKey="content-items"
-              />
-            )}
+            <DataTableServerSide
+              columns={contentItemsColumns}
+              data={contentItems}
+              searchKey="title"
+              searchPlaceholder="Search content items..."
+              filters={filterConfigs}
+              storageKey="content-items"
+              onFiltersChange={handleFiltersChange}
+              onSearchChange={handleSearchChange}
+              isLoading={contentItemsLoading}
+              pagination={paginationData}
+              onPaginationChange={handlePaginationChange}
+            />
           </CardContent>
         </Card>
       </div>

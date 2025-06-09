@@ -13,18 +13,84 @@ export async function GET(request: NextRequest) {
     // Check admin authentication
     await requireAdmin();
     
+    const { searchParams } = new URL(request.url);
+    const limit = parseInt(searchParams.get('limit') || '100');
+    const offset = parseInt(searchParams.get('offset') || '0');
+    const search = searchParams.get('search');
+    
+    // Parse filter parameters
+    const typeFilter = searchParams.get('type');
+    const isActiveFilter = searchParams.get('isActive');
+
+    // Build where clause
+    const where: any = {};
+
+    // Type filter
+    if (typeFilter) {
+      const types = typeFilter.split(',');
+      where.type = {
+        in: types
+      };
+    }
+
+    // Active status filter
+    if (isActiveFilter) {
+      const activeValues = isActiveFilter.split(',').map(val => val === 'true');
+      if (activeValues.length === 1) {
+        where.isActive = activeValues[0];
+      } else if (activeValues.length > 1) {
+        where.isActive = {
+          in: activeValues
+        };
+      }
+    }
+
+    // Search filter
+    if (search) {
+      where.OR = [
+        {
+          name: {
+            contains: search,
+            mode: 'insensitive'
+          }
+        },
+        {
+          url: {
+            contains: search,
+            mode: 'insensitive'
+          }
+        }
+      ];
+    }
+
+    console.log('Sources query where clause:', JSON.stringify(where, null, 2));
+
+    // Get total count for pagination
+    const totalCount = await prisma.source.count({ where });
+    
+    // Get filtered sources
     const sources = await prisma.source.findMany({
-      where: { isActive: true },
+      where,
       include: { 
         contentItems: {
           take: 5,
           orderBy: { publishedAt: 'desc' }
         }
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+      skip: offset
     });
 
-    return NextResponse.json({ sources });
+    return NextResponse.json({ 
+      sources,
+      pagination: {
+        total: totalCount,
+        limit,
+        offset,
+        hasMore: offset + limit < totalCount
+      }
+    });
   } catch (error) {
     console.error('Error fetching sources:', error);
     
