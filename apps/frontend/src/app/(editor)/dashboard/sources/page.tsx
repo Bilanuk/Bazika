@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, Plus, AlertCircle } from 'lucide-react';
-import { DataTable } from '@/components/data-table/data-table';
+import { DataTableWithFilters, FilterConfig } from '@/components/data-table/data-table-with-filters';
 import { sourcesColumns } from '@/components/data-table/sources-columns';
 import { Source } from '@/hooks/useSources';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -38,6 +38,31 @@ export default function SourcesPage() {
   const handleRefresh = async () => {
     await refetchSources();
   };
+
+  // Get unique types for filter options
+  const uniqueTypes = React.useMemo(() => {
+    const types = sources.map(source => source.type);
+    return Array.from(new Set(types)).sort();
+  }, [sources]);
+
+  // Filter configurations
+  const filters: FilterConfig[] = [
+    {
+      key: 'type',
+      label: 'Type',
+      type: 'multiselect',
+      options: uniqueTypes.map(type => ({ value: type, label: type })),
+    },
+    {
+      key: 'isActive',
+      label: 'Status',
+      type: 'multiselect',
+      options: [
+        { value: 'true', label: 'Active' },
+        { value: 'false', label: 'Inactive' },
+      ],
+    },
+  ];
 
   return (
     <AdminOnly>
@@ -88,11 +113,13 @@ export default function SourcesPage() {
                 <span className="ml-2">Loading sources...</span>
               </div>
             ) : (
-              <DataTable
+              <DataTableWithFilters
                 columns={sourcesColumns}
                 data={sources}
                 searchKey="name"
                 searchPlaceholder="Search sources..."
+                filters={filters}
+                storageKey="sources"
               />
             )}
           </CardContent>

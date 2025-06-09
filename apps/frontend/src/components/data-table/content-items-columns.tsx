@@ -149,6 +149,12 @@ export const contentItemsColumns: ColumnDef<ContentItem>[] = [
       const source = row.original.source;
       return <Badge variant='outline'>{source?.name || 'Unknown'}</Badge>;
     },
+    filterFn: (row, columnId, filterValue) => {
+      if (!filterValue || filterValue.length === 0) return true;
+      const source = row.original.source;
+      const sourceName = source?.name || 'Unknown';
+      return filterValue.includes(sourceName);
+    },
   },
   {
     accessorKey: 'notificationSent',
@@ -161,10 +167,21 @@ export const contentItemsColumns: ColumnDef<ContentItem>[] = [
         </Badge>
       );
     },
+    filterFn: (row, columnId, filterValue) => {
+      if (!filterValue || filterValue.length === 0) return true;
+      const cellValue = row.getValue(columnId) as boolean;
+      const stringValue = cellValue.toString();
+      return filterValue.includes(stringValue);
+    },
   },
   {
     accessorKey: 'processingStatus',
     header: 'Processing',
+    filterFn: (row, columnId, filterValue) => {
+      if (!filterValue || filterValue.length === 0) return true;
+      const cellValue = row.getValue(columnId) as string;
+      return filterValue.includes(cellValue);
+    },
     cell: ({ row }) => {
       const status = row.getValue('processingStatus') as ProcessingStatus;
       const getStatusVariant = (status: ProcessingStatus) => {

@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, AlertCircle } from 'lucide-react';
-import { DataTable } from '@/components/data-table/data-table';
+import { DataTableWithFilters, FilterConfig } from '@/components/data-table/data-table-with-filters';
 import { contentItemsColumns } from '@/components/data-table/content-items-columns';
 import { ContentItem, ProcessingStatus } from '@/hooks/useSources';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -38,13 +38,68 @@ export default function ContentItemsPage() {
     await refetchContentItems();
   };
 
+  // Get unique sources for filter options
+  const uniqueSources = React.useMemo(() => {
+    const sources = contentItems
+      .map(item => item.source?.name)
+      .filter((name): name is string => !!name);
+    return Array.from(new Set(sources)).sort();
+  }, [contentItems]);
+
+  // Filter configurations
+  const filters: FilterConfig[] = [
+    {
+      key: 'processingStatus',
+      label: 'Status',
+      type: 'multiselect',
+      options: [
+        { value: ProcessingStatus.NONE, label: 'None' },
+        { value: ProcessingStatus.DOWNLOAD_QUEUED, label: 'Download Queued' },
+        { value: ProcessingStatus.DOWNLOADING, label: 'Downloading' },
+        { value: ProcessingStatus.DOWNLOAD_COMPLETED, label: 'Download Completed' },
+        { value: ProcessingStatus.DOWNLOAD_FAILED, label: 'Download Failed' },
+        { value: ProcessingStatus.PROCESSING_QUEUED, label: 'Processing Queued' },
+        { value: ProcessingStatus.PROCESSING, label: 'Processing' },
+        { value: ProcessingStatus.PROCESSING_COMPLETED, label: 'Processing Completed' },
+        { value: ProcessingStatus.PROCESSING_FAILED, label: 'Processing Failed' },
+        { value: ProcessingStatus.PROCESSING_SKIPPED, label: 'Processing Skipped' },
+      ],
+    },
+    {
+      key: 'source.name',
+      label: 'Source',
+      type: 'multiselect',
+      options: uniqueSources.map(source => ({ value: source, label: source })),
+    },
+    {
+      key: 'notificationSent',
+      label: 'Notifications',
+      type: 'multiselect',
+      options: [
+        { value: 'true', label: 'Sent' },
+        { value: 'false', label: 'Pending' },
+      ],
+    },
+  ];
+
   // Calculate statistics
   const pendingNotifications = contentItems.filter(item => !item.notificationSent).length;
-  const pendingProcessing = contentItems.filter(item => item.processingStatus === ProcessingStatus.PENDING).length;
-  const queuedProcessing = contentItems.filter(item => item.processingStatus === ProcessingStatus.QUEUED).length;
-  const processingItems = contentItems.filter(item => item.processingStatus === ProcessingStatus.PROCESSING).length;
-  const completedProcessing = contentItems.filter(item => item.processingStatus === ProcessingStatus.COMPLETED).length;
-  const failedProcessing = contentItems.filter(item => item.processingStatus === ProcessingStatus.FAILED).length;
+  const pendingProcessing = contentItems.filter(item => item.processingStatus === ProcessingStatus.NONE).length;
+  const queuedProcessing = contentItems.filter(item => 
+    item.processingStatus === ProcessingStatus.DOWNLOAD_QUEUED || 
+    item.processingStatus === ProcessingStatus.PROCESSING_QUEUED
+  ).length;
+  const processingItems = contentItems.filter(item => 
+    item.processingStatus === ProcessingStatus.DOWNLOADING || 
+    item.processingStatus === ProcessingStatus.PROCESSING
+  ).length;
+  const completedProcessing = contentItems.filter(item => 
+    item.processingStatus === ProcessingStatus.PROCESSING_COMPLETED
+  ).length;
+  const failedProcessing = contentItems.filter(item => 
+    item.processingStatus === ProcessingStatus.DOWNLOAD_FAILED || 
+    item.processingStatus === ProcessingStatus.PROCESSING_FAILED
+  ).length;
 
   return (
     <AdminOnly>
@@ -142,11 +197,13 @@ export default function ContentItemsPage() {
                 <span className="ml-2">Loading content items...</span>
               </div>
             ) : (
-              <DataTable
+              <DataTableWithFilters
                 columns={contentItemsColumns}
                 data={contentItems}
                 searchKey="title"
                 searchPlaceholder="Search content items..."
+                filters={filters}
+                storageKey="content-items"
               />
             )}
           </CardContent>

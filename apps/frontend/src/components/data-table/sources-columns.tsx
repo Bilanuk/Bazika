@@ -58,6 +58,11 @@ export const sourcesColumns: ColumnDef<Source>[] = [
   {
     accessorKey: 'type',
     header: 'Type',
+    filterFn: (row, columnId, filterValue) => {
+      if (!filterValue || filterValue.length === 0) return true;
+      const cellValue = row.getValue(columnId) as string;
+      return filterValue.includes(cellValue);
+    },
     cell: ({ row }) => {
       const type = row.getValue('type') as string;
       return (
@@ -79,6 +84,12 @@ export const sourcesColumns: ColumnDef<Source>[] = [
   {
     accessorKey: 'isActive',
     header: 'Status',
+    filterFn: (row, columnId, filterValue) => {
+      if (!filterValue || filterValue.length === 0) return true;
+      const cellValue = row.getValue(columnId) as boolean;
+      const stringValue = cellValue.toString();
+      return filterValue.includes(stringValue);
+    },
     cell: ({ row }) => {
       const isActive = row.getValue('isActive') as boolean;
       return (
