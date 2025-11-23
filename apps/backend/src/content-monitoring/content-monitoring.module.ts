@@ -12,9 +12,10 @@ import { AniListService } from './anilist.service';
 import { ContentMonitoringController } from './content-monitoring.controller';
 import { SourcesModule } from '../sources/sources.module';
 import { PrismaModule } from '../prisma/prisma.module';
+import { QueueModule } from '../queue/queue.module';
 
 @Module({
-  imports: [ScheduleModule.forRoot(), SourcesModule, PrismaModule],
+  imports: [ScheduleModule.forRoot(), SourcesModule, PrismaModule, QueueModule],
   controllers: [ContentMonitoringController],
   providers: [
     ContentMonitoringService,

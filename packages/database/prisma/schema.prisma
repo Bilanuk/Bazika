@@ -134,15 +134,16 @@ enum UserRole {
 }
 
 model Source {
-  id           String        @id @default(uuid())
-  name         String
-  type         SourceType
-  url          String
-  isActive     Boolean       @default(true)
-  lastChecked  DateTime?
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  contentItems ContentItem[]
+  id                  String        @id @default(uuid())
+  name                String
+  type                SourceType
+  url                 String
+  isActive            Boolean       @default(true)
+  autoDownloadEnabled Boolean       @default(false) // Control automatic downloads for new episodes
+  lastChecked         DateTime?
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  contentItems        ContentItem[]
 }
 
 model ContentItem {

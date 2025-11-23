@@ -4,13 +4,14 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { RefreshCw, Plus, AlertCircle } from 'lucide-react';
+import { RefreshCw, Plus, AlertCircle, Download } from 'lucide-react';
 import { DataTableServerSide, FilterConfig } from '@/components/data-table/data-table-server-side';
 import { sourcesColumns } from '@/components/data-table/sources-columns';
 import { Source } from '@/hooks/useSources';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import AddSourceSheet from '@/components/AddSourceSheet';
 import AdminOnly from '@/components/AdminOnly';
+import { BackfillDialog } from '@/components/BackfillDialog';
 
 // Fetch function for React Query with filters
 async function fetchSources(
@@ -53,6 +54,7 @@ export default function SourcesPage() {
   const [search, setSearch] = React.useState('');
   const [pagination, setPagination] = React.useState({ offset: 0, limit: 100 });
   const [isInitialized, setIsInitialized] = React.useState(false);
+  const [backfillDialogOpen, setBackfillDialogOpen] = React.useState(false);
 
   // React Query hook with dependencies on filters, search, and pagination
   const {
@@ -80,6 +82,11 @@ export default function SourcesPage() {
 
   const handleRefresh = async () => {
     await refetchSources();
+  };
+
+  const handleBackfillSuccess = () => {
+    // Refresh the sources data after successful backfill
+    handleRefresh();
   };
 
   const handleFiltersChange = React.useCallback((newFilters: Record<string, string[]>) => {
@@ -143,6 +150,14 @@ export default function SourcesPage() {
               <RefreshCw className={`h-4 w-4 mr-2 ${sourcesLoading ? 'animate-spin' : ''}`} />
               Refresh
             </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setBackfillDialogOpen(true)}
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Backfill RSS
+            </Button>
             <AddSourceSheet onSourceAdded={handleRefresh} />
           </div>
         </div>
@@ -182,6 +197,13 @@ export default function SourcesPage() {
             />
           </CardContent>
         </Card>
+
+        {/* Backfill Dialog */}
+        <BackfillDialog
+          open={backfillDialogOpen}
+          onOpenChange={setBackfillDialogOpen}
+          onSuccess={handleBackfillSuccess}
+        />
       </div>
     </AdminOnly>
   );

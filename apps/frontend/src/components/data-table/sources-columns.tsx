@@ -13,7 +13,56 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { Source } from '@/hooks/useSources';
+import { useState } from 'react';
+
+function AutoDownloadToggle({ source }: { source: Source }) {
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [checked, setChecked] = useState(source.autoDownloadEnabled ?? false);
+
+  const handleToggle = async (newValue: boolean) => {
+    setIsUpdating(true);
+    try {
+      const response = await fetch('/api/sources', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: source.id,
+          autoDownloadEnabled: newValue,
+        }),
+      });
+
+      if (response.ok) {
+        setChecked(newValue);
+      } else {
+        const errorData = await response.json();
+        console.error('Failed to update auto download setting:', errorData.error);
+        // Revert the change on error
+        setChecked(!newValue);
+      }
+    } catch (error) {
+      console.error('Error updating auto download setting:', error);
+      // Revert the change on error
+      setChecked(!newValue);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  return (
+    <div className="flex items-center">
+      <Switch
+        checked={checked}
+        onCheckedChange={handleToggle}
+        disabled={isUpdating}
+        aria-label="Auto download enabled"
+      />
+    </div>
+  );
+}
 
 export const sourcesColumns: ColumnDef<Source>[] = [
   {
@@ -133,6 +182,14 @@ export const sourcesColumns: ColumnDef<Source>[] = [
           {contentItems?.length || 0}
         </div>
       );
+    },
+  },
+  {
+    accessorKey: 'autoDownloadEnabled',
+    header: 'Auto Download',
+    cell: ({ row }) => {
+      const source = row.original;
+      return <AutoDownloadToggle source={source} />;
     },
   },
   {

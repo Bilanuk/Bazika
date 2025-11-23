@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, Plus, AlertCircle, ArrowRight, Database } from 'lucide-react';
@@ -9,6 +9,7 @@ import { Source, ContentItem, ProcessingStatus } from '@/hooks/useSources';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import AddSourceSheet from '@/components/AddSourceSheet';
 import Link from 'next/link';
+import { BackfillDialog } from '@/components/BackfillDialog';
 
 // Fetch functions for React Query
 async function fetchSources(): Promise<Source[]> {
@@ -49,6 +50,7 @@ async function syncAniList(limit: number = 10): Promise<void> {
 export default function AdminDashboard() {
   const [isAniListSyncing, setIsAniListSyncing] = useState(false);
   const [aniListMessage, setAniListMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [backfillDialogOpen, setBackfillDialogOpen] = useState(false);
 
   // React Query hooks
   const {
@@ -100,6 +102,11 @@ export default function AdminDashboard() {
     } finally {
       setIsAniListSyncing(false);
     }
+  };
+
+  const handleBackfillSuccess = () => {
+    // Refresh data after successful backfill
+    handleRefresh();
   };
 
   const isLoading = sourcesLoading || contentItemsLoading;
@@ -268,6 +275,38 @@ export default function AdminDashboard() {
 
         <Card>
           <CardHeader>
+            <CardTitle>RSS Backfill</CardTitle>
+            <CardDescription>
+              Fetch historical data from RSS feeds
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium">Historical Data</p>
+                  <p className="text-xs text-muted-foreground">
+                    Paginate through older RSS pages
+                  </p>
+                </div>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setBackfillDialogOpen(true)}
+                className="w-full"
+              >
+                Start Backfill
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                ⚡ Throttled requests to respect server limits
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
             <CardTitle>AniList Integration</CardTitle>
             <CardDescription>
               Sync anime series with AniList for rich metadata
@@ -338,6 +377,13 @@ export default function AdminDashboard() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Backfill Dialog */}
+      <BackfillDialog
+        open={backfillDialogOpen}
+        onOpenChange={setBackfillDialogOpen}
+        onSuccess={handleBackfillSuccess}
+      />
     </div>
   );
 } 

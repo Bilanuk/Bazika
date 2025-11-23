@@ -42,4 +42,14 @@ export class SourcesService {
     this.logger.log(`Activating source: ${id}`);
     return this.sourcesRepository.update(id, { isActive: true });
   }
+
+  async updateAutoDownloadEnabled(
+    id: string,
+    autoDownloadEnabled: boolean,
+  ): Promise<Source> {
+    this.logger.log(
+      `Updating autoDownloadEnabled for source ${id}: ${autoDownloadEnabled}`,
+    );
+    return this.sourcesRepository.update(id, { autoDownloadEnabled });
+  }
 }

@@ -6,6 +6,7 @@ export interface Source {
   type: string;
   url: string;
   isActive: boolean;
+  autoDownloadEnabled: boolean;
   lastChecked: string | null;
   createdAt: string;
   updatedAt: string;

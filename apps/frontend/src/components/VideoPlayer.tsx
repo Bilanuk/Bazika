@@ -132,7 +132,7 @@ export default function VideoPlayer({
                   )}
                 >
                   <TypographyP>
-                    Episode {episode.episodeNumber}: {episode.title}
+                    Episode {episode.episodeNumber}
                   </TypographyP>
                 </button>
               ))}

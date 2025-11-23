@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
     await requireAdmin();
     
     const body = await request.json();
-    const { name, type, url, isActive = true } = body;
+    const { name, type, url, isActive = true, autoDownloadEnabled = false } = body;
 
     // Validate required fields
     if (!name || !type || !url) {
@@ -162,6 +162,7 @@ export async function POST(request: NextRequest) {
         type,
         url: url.trim(),
         isActive,
+        autoDownloadEnabled,
       },
     });
 
@@ -183,6 +184,62 @@ export async function POST(request: NextRequest) {
     
     return NextResponse.json(
       { error: 'Failed to create source' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PATCH(request: NextRequest) {
+  try {
+    // Check admin authentication
+    await requireAdmin();
+    
+    const body = await request.json();
+    const { id, ...updateData } = body;
+
+    if (!id) {
+      return NextResponse.json(
+        { error: 'Source ID is required' },
+        { status: 400 }
+      );
+    }
+
+    // Validate that the source exists
+    const existingSource = await prisma.source.findUnique({
+      where: { id },
+    });
+
+    if (!existingSource) {
+      return NextResponse.json(
+        { error: 'Source not found' },
+        { status: 404 }
+      );
+    }
+
+    // Update the source
+    const updatedSource = await prisma.source.update({
+      where: { id },
+      data: updateData,
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: 'Source updated successfully',
+      source: updatedSource,
+    });
+  } catch (error) {
+    console.error('Error updating source:', error);
+    
+    // Handle auth errors
+    if (error instanceof Error && (error.message === 'Unauthorized' || error.message === 'Admin access required')) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: 403 }
+      );
+    }
+    
+    return NextResponse.json(
+      { error: 'Failed to update source' },
       { status: 500 }
     );
   }

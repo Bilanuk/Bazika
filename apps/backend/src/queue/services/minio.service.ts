@@ -96,7 +96,7 @@ export class MinioService {
     bucketName?: string,
   ): Promise<string> {
     const bucket = bucketName || this.defaultBucketName;
-    
+
     try {
       return await this.minioClient.presignedGetObject(
         bucket,
@@ -113,19 +113,23 @@ export class MinioService {
 
   async deleteObject(objectName: string, bucketName?: string): Promise<void> {
     const bucket = bucketName || this.defaultBucketName;
-    
+
     try {
       await this.minioClient.removeObject(bucket, objectName);
-      this.logger.log(`Successfully deleted ${objectName} from ${bucket} bucket`);
+      this.logger.log(
+        `Successfully deleted ${objectName} from ${bucket} bucket`,
+      );
     } catch (error) {
-      this.logger.error(`Failed to delete ${objectName} from ${bucket}: ${error.message}`);
+      this.logger.error(
+        `Failed to delete ${objectName} from ${bucket}: ${error.message}`,
+      );
       throw error;
     }
   }
 
   async listObjects(prefix?: string, bucketName?: string): Promise<string[]> {
     const bucket = bucketName || this.defaultBucketName;
-    
+
     try {
       const objects: string[] = [];
       const stream = this.minioClient.listObjects(bucket, prefix);
@@ -136,7 +140,9 @@ export class MinioService {
         stream.on('error', reject);
       });
     } catch (error) {
-      this.logger.error(`Failed to list objects in ${bucket}: ${error.message}`);
+      this.logger.error(
+        `Failed to list objects in ${bucket}: ${error.message}`,
+      );
       throw error;
     }
   }

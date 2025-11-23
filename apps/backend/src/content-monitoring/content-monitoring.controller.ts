@@ -46,6 +46,60 @@ export class ContentMonitoringController {
     };
   }
 
+  @Public()
+  @Post('backfill')
+  async backfillSources(
+    @Body()
+    body: {
+      sourceIds: string[];
+      startPage?: number;
+      endPage?: number;
+      throttleMs?: number;
+    },
+  ) {
+    this.logger.log(
+      `Starting backfill for sources: ${body.sourceIds.join(', ')}`,
+    );
+
+    const { sourceIds, startPage = 1, endPage = 10, throttleMs = 2000 } = body;
+
+    if (!sourceIds || sourceIds.length === 0) {
+      return {
+        success: false,
+        message: 'No source IDs provided',
+      };
+    }
+
+    if (startPage < 1 || endPage < startPage) {
+      return {
+        success: false,
+        message: 'Invalid page range',
+      };
+    }
+
+    if (endPage - startPage > 50) {
+      return {
+        success: false,
+        message: 'Page range too large (maximum 50 pages)',
+      };
+    }
+
+    const result = await this.contentMonitoringService.backfillSources(
+      sourceIds,
+      {
+        startPage,
+        endPage,
+        throttleMs,
+      },
+    );
+
+    return {
+      success: true,
+      message: `Backfill completed: ${result.newItems} new items from ${result.totalItems} total items`,
+      data: result,
+    };
+  }
+
   @Get('status')
   async getStatus() {
     const status = await this.contentMonitoringService.getMonitoringStatus();
