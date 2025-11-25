@@ -236,7 +236,7 @@ export function BackfillDialog({
                   <SelectValue placeholder='Choose a source...' />
                 </SelectTrigger>
                 <SelectContent>
-                  {sources.map((source) => (
+                  {sources?.map((source) => (
                     <SelectItem key={source.id} value={source.id}>
                       {source.name}
                     </SelectItem>

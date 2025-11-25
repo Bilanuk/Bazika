@@ -15,6 +15,16 @@ export class ContentItemsService {
     private minioService: MinioService,
   ) {}
 
+  async getContentItem(contentItemId: string) {
+    return this.prisma.contentItem.findUnique({
+      where: { id: contentItemId },
+      include: {
+        episode: true,
+        source: true,
+      },
+    });
+  }
+
   async queueTorrentDownload(contentItemId: string): Promise<void> {
     // Find the content item
     const contentItem = await this.prisma.contentItem.findUnique({
@@ -96,6 +106,95 @@ export class ContentItemsService {
     this.logger.log(
       `Queued video processing for content item: ${contentItemId}, episode: ${contentItem.episode.id}`,
     );
+  }
+
+  async reprocessContentItem(
+    contentItemId: string,
+    episodeId: string,
+    skipDownload = false,
+  ): Promise<void> {
+    // Find the content item
+    const contentItem = await this.prisma.contentItem.findUnique({
+      where: { id: contentItemId },
+    });
+
+    if (!contentItem) {
+      throw new Error('Content item not found');
+    }
+
+    // Delete existing processed files from anime bucket
+    try {
+      this.logger.log(
+        `Deleting existing processed files for episode: ${episodeId}`,
+      );
+      await this.minioService.deleteFolder(episodeId, 'anime');
+    } catch (error) {
+      this.logger.warn(
+        `Failed to delete existing files (may not exist): ${error.message}`,
+      );
+    }
+
+    // Delete existing video analysis
+    try {
+      await this.prisma.videoAnalysis.deleteMany({
+        where: { episodeId },
+      });
+      this.logger.log(`Deleted video analysis for episode: ${episodeId}`);
+    } catch (error) {
+      this.logger.warn(`Failed to delete video analysis: ${error.message}`);
+    }
+
+    // If skipDownload is true and we have a downloaded file, go straight to video processing
+    if (skipDownload && contentItem.downloadedFileName) {
+      this.logger.log(
+        `Skipping download, using existing file: ${contentItem.downloadedFileName}`,
+      );
+
+      // Update status to DOWNLOAD_COMPLETED
+      await this.prisma.contentItem.update({
+        where: { id: contentItemId },
+        data: {
+          processingStatus: 'DOWNLOAD_COMPLETED',
+        },
+      });
+
+      // Queue video processing directly
+      await this.videoProcessingService.queueProcessing(
+        contentItemId,
+        episodeId,
+        contentItem.downloadedFileName,
+      );
+
+      this.logger.log(
+        `Queued video processing for reprocess: ${contentItemId}`,
+      );
+    } else {
+      // Reset status and start from download
+      await this.prisma.contentItem.update({
+        where: { id: contentItemId },
+        data: {
+          processingStatus: 'NONE',
+          downloadedFileName: null,
+        },
+      });
+
+      // Delete torrent files if re-downloading
+      try {
+        this.logger.log(
+          `Deleting existing torrent files for content item: ${contentItemId}`,
+        );
+        await this.minioService.deleteFolder(contentItemId, 'torrents');
+      } catch (error) {
+        this.logger.warn(`Failed to delete torrent files: ${error.message}`);
+      }
+
+      // Queue torrent download
+      await this.queueTorrentDownload(contentItemId);
+
+      this.logger.log(
+        `Queued torrent download for reprocess: ${contentItemId}`,
+      );
+    }
   }
 
   private async findVideoFile(contentItemId: string): Promise<string | null> {

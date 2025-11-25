@@ -17,6 +17,7 @@ import { getVideoUrl } from '@/lib/video-utils';
 import { useQuery } from '@apollo/client';
 import { GET_RECOMMENDATIONS } from '@/queries/analysis';
 import { Badge } from '@/components/ui/badge';
+import { EpisodeContentItemsTable } from './EpisodeContentItemsTable';
 
 // Override Vidstack styles
 const styles = `
@@ -56,11 +57,13 @@ type EpisodeWithAnalysis = Episode & {
 interface VideoPlayerProps {
   episodes: EpisodeWithAnalysis[] | null | undefined;
   initialEpisodeNumber?: string;
+  isAdmin?: boolean;
 }
 
 export default function VideoPlayer({
   episodes,
   initialEpisodeNumber,
+  isAdmin = false,
 }: VideoPlayerProps) {
   const sortedEpisodes = episodes
     ?.slice()
@@ -171,35 +174,14 @@ export default function VideoPlayer({
       </div>
 
       <div className='mt-8 col-span-4 space-y-8'>
-        {currentEpisode.contentItems && currentEpisode.contentItems.length > 0 && (
+        {isAdmin && currentEpisode.contentItems && currentEpisode.contentItems.length > 0 && (
           <div>
-            <TypographyH4 className='mb-4'>Debug: Content Items</TypographyH4>
-            <div className='space-y-2'>
-              {currentEpisode.contentItems.map((item) => (
-                <div key={item.id} className='border rounded-lg p-4 space-y-2'>
-                  <div className='flex items-center justify-between'>
-                    <TypographyP className='font-medium text-sm line-clamp-1'>
-                      {item.source.name}
-                    </TypographyP>
-                    <div className='flex gap-2'>
-                      {item.quality && (
-                        <Badge variant='outline'>{item.quality}</Badge>
-                      )}
-                      <Badge variant={
-                        item.processingStatus === 'PROCESSING_COMPLETED' ? 'default' :
-                        item.processingStatus.includes('FAILED') ? 'destructive' :
-                        'secondary'
-                      }>
-                        {item.processingStatus}
-                      </Badge>
-                    </div>
-                  </div>
-                  <TypographyP className='text-xs text-muted-foreground line-clamp-1'>
-                    {item.title}
-                  </TypographyP>
-                </div>
-              ))}
-            </div>
+            <TypographyH4 className='mb-4'>Content Items</TypographyH4>
+            <EpisodeContentItemsTable 
+              items={currentEpisode.contentItems}
+              episodeId={currentEpisode.id}
+              isAdmin={isAdmin}
+            />
           </div>
         )}
 

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -37,6 +36,7 @@ import { UserRoles } from '@/types/user-roles';
 
 interface AddSourceSheetProps {
   onSourceAdded?: () => void;
+  user?: { role?: string } | null;
 }
 
 enum SourceType {
@@ -45,8 +45,7 @@ enum SourceType {
   SCRAPER = 'SCRAPER',
 }
 
-export default function AddSourceSheet({ onSourceAdded }: AddSourceSheetProps) {
-  const { data: session } = useSession();
+export default function AddSourceSheet({ onSourceAdded, user }: AddSourceSheetProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -61,7 +60,7 @@ export default function AddSourceSheet({ onSourceAdded }: AddSourceSheetProps) {
   } | null>(null);
 
   // Only show for admin users
-  if (!session?.user || session.user.role !== UserRoles.ADMIN) {
+  if (!user || user.role !== UserRoles.ADMIN) {
     return null;
   }
 

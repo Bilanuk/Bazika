@@ -3,6 +3,7 @@ import { Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
 import { PrismaService } from '../../prisma/prisma.service';
 import { MinioService } from '../services/minio.service';
+import { VideoProcessingService } from '../services/video-processing.service';
 import { Readable } from 'stream';
 import { exec } from 'child_process';
 import { promisify } from 'util';
@@ -26,6 +27,7 @@ export class TorrentDownloadProcessor extends WorkerHost {
   constructor(
     private prisma: PrismaService,
     private minioService: MinioService,
+    private videoProcessingService: VideoProcessingService,
   ) {
     super();
   }
@@ -64,17 +66,36 @@ export class TorrentDownloadProcessor extends WorkerHost {
       const mainVideoFile = this.findMainVideoFile(downloadedFiles);
 
       // Update status to DOWNLOAD_COMPLETED and store video filename
-      await this.prisma.contentItem.update({
+      const updatedItem = await this.prisma.contentItem.update({
         where: { id: contentItemId },
         data: {
           processingStatus: 'DOWNLOAD_COMPLETED',
           downloadedFileName: mainVideoFile?.name?.trim() || null,
+        },
+        include: {
+          episode: true,
         },
       });
 
       this.logger.log(`Successfully completed torrent download job: ${job.id}`);
       if (mainVideoFile) {
         this.logger.log(`Main video file: ${mainVideoFile.name}`);
+      }
+
+      // Automatically queue video processing if episode exists
+      if (updatedItem.episode && mainVideoFile) {
+        this.logger.log(
+          `Auto-queueing video processing for episode ${updatedItem.episode.id}`,
+        );
+        await this.videoProcessingService.queueProcessing(
+          contentItemId,
+          updatedItem.episode.id,
+          mainVideoFile.name,
+        );
+      } else {
+        this.logger.warn(
+          `Cannot auto-queue video processing: ${!updatedItem.episode ? 'no episode' : 'no video file'}`,
+        );
       }
     } catch (error) {
       this.logger.error(

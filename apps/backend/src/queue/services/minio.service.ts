@@ -146,4 +146,31 @@ export class MinioService {
       throw error;
     }
   }
+
+  async deleteFolder(prefix: string, bucketName?: string): Promise<void> {
+    const bucket = bucketName || this.defaultBucketName;
+
+    try {
+      // List all objects with the given prefix
+      const objects = await this.listObjects(prefix, bucket);
+
+      if (objects.length === 0) {
+        this.logger.log(`No objects found with prefix ${prefix} in ${bucket}`);
+        return;
+      }
+
+      // Delete all objects
+      const objectsList = objects.map((name) => name);
+      await this.minioClient.removeObjects(bucket, objectsList);
+
+      this.logger.log(
+        `Successfully deleted ${objects.length} objects with prefix ${prefix} from ${bucket}`,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to delete folder ${prefix} from ${bucket}: ${error.message}`,
+      );
+      throw error;
+    }
+  }
 }

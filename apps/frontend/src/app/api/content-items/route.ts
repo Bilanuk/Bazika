@@ -21,9 +21,16 @@ export async function GET(request: NextRequest) {
     const sourceNameFilter = searchParams.get('sourceName');
     const serialTitleFilter = searchParams.get('serialTitle');
     const episodeNumberFilter = searchParams.get('episodeNumber');
+    const onlyMatched = searchParams.get('onlyMatched') === 'true';
 
     // Build where clause
     const where: any = {};
+
+    // Filter for only matched items (with both serialId and episodeId)
+    if (onlyMatched) {
+      where.serialId = { not: null };
+      where.episodeId = { not: null };
+    }
 
     // Source filter
     if (sourceId) {

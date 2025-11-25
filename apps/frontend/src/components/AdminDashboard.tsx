@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
+import { useSession } from 'next-auth/react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, Plus, AlertCircle, ArrowRight, Database } from 'lucide-react';
@@ -22,7 +23,7 @@ async function fetchSources(): Promise<Source[]> {
 }
 
 async function fetchContentItems(): Promise<ContentItem[]> {
-  const response = await fetch('/api/content-items?limit=100');
+  const response = await fetch('/api/content-items?limit=100&onlyMatched=true');
   if (!response.ok) {
     throw new Error(`HTTP error! status: ${response.status}`);
   }
@@ -48,6 +49,7 @@ async function syncAniList(limit: number = 10): Promise<void> {
 }
 
 export default function AdminDashboard() {
+  const { data: session } = useSession();
   const [isAniListSyncing, setIsAniListSyncing] = useState(false);
   const [aniListMessage, setAniListMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [backfillDialogOpen, setBackfillDialogOpen] = useState(false);
@@ -149,7 +151,7 @@ export default function AdminDashboard() {
             <Database className={`h-4 w-4 mr-2 ${isAniListSyncing ? 'animate-spin' : ''}`} />
             Sync AniList
           </Button>
-          <AddSourceSheet onSourceAdded={handleRefresh} />
+          <AddSourceSheet onSourceAdded={handleRefresh} user={session?.user} />
         </div>
       </div>
 

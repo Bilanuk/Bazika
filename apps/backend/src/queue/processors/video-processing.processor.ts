@@ -34,15 +34,14 @@ export class VideoProcessingProcessor extends WorkerHost {
     const { contentItemId, episodeId, inputFileName } = job.data;
     let tempDir: string | null = null;
 
-    this.logger.log(
-      `Processing video job: ${job.id} for episode: ${episodeId}`,
-    );
-    this.logger.log(
+    await job.log(`Processing video job: ${job.id} for episode: ${episodeId}`);
+    await job.log(
       `Looking for file: ${contentItemId}/${inputFileName} in torrents bucket`,
     );
 
     try {
       // Update status to PROCESSING
+      await job.updateProgress(0);
       await this.prisma.contentItem.update({
         where: { id: contentItemId },
         data: { processingStatus: 'PROCESSING' },
@@ -56,7 +55,7 @@ export class VideoProcessingProcessor extends WorkerHost {
       const outputDir = path.join(tempDir, 'output');
       await fs.promises.mkdir(outputDir, { recursive: true });
 
-      this.logger.log(
+      await job.log(
         `Downloading video from MinIO torrents bucket: ${contentItemId}/${inputFileName}`,
       );
 
@@ -100,17 +99,20 @@ export class VideoProcessingProcessor extends WorkerHost {
         writeStream.on('error', reject);
       });
 
-      this.logger.log('Video downloaded, starting FFmpeg processing...');
+      await job.log('Video downloaded, starting FFmpeg processing...');
+      await job.updateProgress(20);
 
       // Process video with FFmpeg to HLS
-      await this.processVideoToHLS(inputPath, outputDir);
+      await this.processVideoToHLS(inputPath, outputDir, job);
 
-      this.logger.log(
+      await job.log(
         'FFmpeg processing completed, uploading to anime bucket...',
       );
+      await job.updateProgress(70);
 
       // Upload HLS files to anime bucket
-      const m3u8Url = await this.uploadHLSFiles(outputDir, episodeId);
+      const m3u8Url = await this.uploadHLSFiles(outputDir, episodeId, job);
+      await job.updateProgress(85);
 
       // Update episode with HLS URL
       await this.prisma.episode.update({
@@ -123,6 +125,7 @@ export class VideoProcessingProcessor extends WorkerHost {
         where: { id: contentItemId },
         data: { processingStatus: 'PROCESSING_COMPLETED' },
       });
+      await job.updateProgress(95);
 
       // Trigger analysis
       await this.analysisQueue.add('analyze', {
@@ -130,9 +133,10 @@ export class VideoProcessingProcessor extends WorkerHost {
         episodeId,
         inputFileName,
       });
-      this.logger.log(`Triggered analysis job for episode: ${episodeId}`);
+      await job.log(`Triggered analysis job for episode: ${episodeId}`);
 
-      this.logger.log(`Successfully completed video processing job: ${job.id}`);
+      await job.updateProgress(100);
+      await job.log(`Successfully completed video processing job: ${job.id}`);
     } catch (error) {
       this.logger.error(
         `Failed to process video job ${job.id}: ${error.message}`,
@@ -150,7 +154,7 @@ export class VideoProcessingProcessor extends WorkerHost {
       if (tempDir) {
         try {
           await fs.promises.rm(tempDir, { recursive: true, force: true });
-          this.logger.log(`Cleaned up temporary directory: ${tempDir}`);
+          await job.log(`Cleaned up temporary directory: ${tempDir}`);
         } catch (cleanupError) {
           this.logger.warn(
             `Failed to cleanup temp files: ${cleanupError.message}`,
@@ -163,17 +167,24 @@ export class VideoProcessingProcessor extends WorkerHost {
   private async processVideoToHLS(
     inputPath: string,
     outputDir: string,
+    job: Job,
   ): Promise<void> {
     const outputPlaylist = path.join(outputDir, 'playlist.m3u8');
 
     const ffmpegCommand = [
       'ffmpeg',
+      '-hwaccel',
+      'videotoolbox',
       '-i',
       `"${inputPath}"`,
       '-c:v',
-      'libx264',
+      'h264_videotoolbox',
+      '-b:v',
+      '3M',
       '-c:a',
       'aac',
+      '-b:a',
+      '128k',
       '-hls_time',
       '10',
       '-hls_list_size',
@@ -185,22 +196,25 @@ export class VideoProcessingProcessor extends WorkerHost {
       `"${outputPlaylist}"`,
     ].join(' ');
 
-    this.logger.log(`Executing FFmpeg: ${ffmpegCommand}`);
+    await job.log(`Executing FFmpeg with VideoToolbox: ${ffmpegCommand}`);
+    await job.updateProgress(30);
 
     const { stderr } = await execAsync(ffmpegCommand, {
       timeout: 1800000, // 30 minutes timeout
     });
 
     if (stderr && !stderr.includes('frame=')) {
-      this.logger.warn(`FFmpeg stderr: ${stderr}`);
+      await job.log(`FFmpeg stderr: ${stderr}`);
     }
 
-    this.logger.log('FFmpeg processing completed successfully');
+    await job.log('FFmpeg processing completed successfully');
+    await job.updateProgress(60);
   }
 
   private async uploadHLSFiles(
     outputDir: string,
     episodeId: string,
+    job: Job,
   ): Promise<string> {
     const files = await fs.promises.readdir(outputDir);
     const uploadPromises: Promise<string>[] = [];
@@ -228,11 +242,12 @@ export class VideoProcessingProcessor extends WorkerHost {
         );
 
         uploadPromises.push(uploadPromise);
-        this.logger.log(`Uploading: ${objectName}`);
+        await job.log(`Uploading: ${objectName}`);
       }
     }
 
     await Promise.all(uploadPromises);
+    await job.log(`Uploaded ${files.length} HLS files to anime bucket`);
 
     // Return the URL to the main playlist
     return `${episodeId}/playlist.m3u8`;

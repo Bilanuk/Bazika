@@ -127,6 +127,7 @@ export default async function SerialPage({ params, searchParams }: Props) {
         <VideoPlayer
           episodes={serial.episodes}
           initialEpisodeNumber={searchParams.episode}
+          isAdmin={session?.user?.role === 'ADMIN'}
         />
       </PageWrapper>
     </main>

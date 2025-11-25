@@ -1,44 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Queue } from 'bullmq';
-import { Redis } from 'ioredis';
+import { requireAdmin } from '@/lib/auth';
 import prisma from '@/lib/prisma';
-
-// Redis connection will be created per request to avoid connection issues
+import { Queue } from 'bullmq';
+import Redis from 'ioredis';
 
 export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  let redis: Redis | null = null;
-  
   try {
+    // Check admin authentication
+    await requireAdmin();
+
     const contentItemId = params.id;
 
-    // Create Redis connection
-    redis = new Redis({
-      host: process.env.REDIS_HOST || 'localhost',
-      port: parseInt(process.env.REDIS_PORT || '6379'),
-      password: process.env.REDIS_PASSWORD,
-    });
-
-    // Create video processing queue
-    const videoProcessingQueue = new Queue('video-processing', {
-      connection: redis,
-    });
-
-    // Find the content item with episode information
+    // Find the content item
     const contentItem = await prisma.contentItem.findUnique({
       where: { id: contentItemId },
-      include: {
-        episode: true,
-      },
-    });
-
-    console.log('Content item found:', {
-      id: contentItem?.id,
-      downloadedFileName: contentItem?.downloadedFileName,
-      processingStatus: contentItem?.processingStatus,
-      hasEpisode: !!contentItem?.episode,
     });
 
     if (!contentItem) {
@@ -48,77 +26,83 @@ export async function POST(
       );
     }
 
-    if (!contentItem.episode) {
+    // Check if the content item has a torrent URL
+    if (!contentItem.url) {
       return NextResponse.json(
-        { error: 'Content item is not associated with an episode' },
+        { error: 'Content item has no torrent URL' },
         { status: 400 }
       );
     }
 
-    if (
-      contentItem.processingStatus !== 'DOWNLOAD_COMPLETED' &&
-      contentItem.processingStatus !== 'PROCESSING_FAILED'
-    ) {
+    // Validate that the URL looks like a torrent (magnet link or .torrent file)
+    const isMagnetLink = contentItem.url.startsWith('magnet:');
+    const isTorrentFile = contentItem.url.endsWith('.torrent');
+
+    if (!isMagnetLink && !isTorrentFile) {
       return NextResponse.json(
-        { error: 'Content item must be downloaded before processing' },
+        { error: 'Content item URL is not a valid torrent URL' },
         { status: 400 }
       );
     }
 
-    // Find the video file name from the database and clean it
-    const videoFileName = contentItem.downloadedFileName?.trim();
-    console.log('Video filename from DB:', videoFileName);
+    // Create Redis connection and queue
+    const redis = new Redis({
+      host: process.env.REDIS_HOST || 'localhost',
+      port: parseInt(process.env.REDIS_PORT || '6379'),
+      password: process.env.REDIS_PASSWORD,
+    });
 
-    if (!videoFileName) {
-      return NextResponse.json(
-        { error: 'No video file found for this content item' },
-        { status: 400 }
-      );
-    }
+    const downloadQueue = new Queue('torrent-download', { connection: redis });
 
-    // Queue the video processing job
-    await videoProcessingQueue.add(
-      'process-video',
+    // Update status to DOWNLOAD_QUEUED
+    await prisma.contentItem.update({
+      where: { id: contentItemId },
+      data: { processingStatus: 'DOWNLOAD_QUEUED' },
+    });
+
+    // Queue the download job
+    await downloadQueue.add(
+      'download-torrent',
       {
         contentItemId,
-        episodeId: contentItem.episode.id,
-        inputFileName: videoFileName,
+        torrentUrl: contentItem.url,
+        infoHash: contentItem.infoHash,
       },
       {
         attempts: 1,
         backoff: {
           type: 'exponential',
-          delay: 10000,
+          delay: 5000,
         },
+        removeOnComplete: 10,
+        removeOnFail: 5,
       }
     );
 
-    // Update status to PROCESSING_QUEUED
-    await prisma.contentItem.update({
-      where: { id: contentItemId },
-      data: { processingStatus: 'PROCESSING_QUEUED' },
-    });
+    // Close Redis connection
+    await redis.quit();
 
     return NextResponse.json({
       success: true,
-      message: 'Video processing queued successfully',
+      message: 'Processing started',
       contentItemId,
     });
   } catch (error) {
-    console.error('Error queuing video processing:', error);
-    
+    console.error('Error queuing download:', error);
+
+    // Handle auth errors
+    if (
+      error instanceof Error &&
+      (error.message === 'Unauthorized' ||
+        error.message === 'Admin access required')
+    ) {
+      return NextResponse.json({ error: error.message }, { status: 403 });
+    }
+
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Failed to start processing' },
       { status: 500 }
     );
-  } finally {
-    // Make sure to close Redis connection
-    if (redis) {
-      try {
-        await redis.quit();
-      } catch (redisError) {
-        console.error('Error closing Redis connection:', redisError);
-      }
-    }
   }
-} 
+}
+
