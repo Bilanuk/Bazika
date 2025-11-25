@@ -85,7 +85,7 @@ export async function POST(
         inputFileName: videoFileName,
       },
       {
-        attempts: 2,
+        attempts: 1,
         backoff: {
           type: 'exponential',
           delay: 10000,

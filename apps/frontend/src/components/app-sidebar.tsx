@@ -11,6 +11,7 @@ import {
   Video,
   Bell,
   Activity,
+  Inbox,
 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
@@ -52,6 +53,12 @@ const navigationItems = [
     url: '/dashboard/content',
     icon: Database,
     description: 'View and manage content items',
+  },
+  {
+    title: 'Pending Items',
+    url: '/dashboard/content/pending',
+    icon: Inbox,
+    description: 'Match unlinked content to serials',
   },
   {
     title: 'Processing Queue',
@@ -193,7 +200,7 @@ export function AppSidebar() {
               <SidebarMenu>
                 {navigationItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                    {item.title === 'Dashboard' || item.title === 'Content Sources' || item.title === 'Content Items' ? (
+                    {item.title === 'Dashboard' || item.title === 'Content Sources' || item.title === 'Content Items' || item.title === 'Pending Items' ? (
                       <SidebarMenuButton 
                         asChild 
                         tooltip={item.description}

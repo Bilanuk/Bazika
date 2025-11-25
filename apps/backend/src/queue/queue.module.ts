@@ -29,6 +29,9 @@ import { PrismaModule } from '../prisma/prisma.module';
     BullModule.registerQueue({
       name: 'video-processing',
     }),
+    BullModule.registerQueue({
+      name: 'video-analysis',
+    }),
     PrismaModule,
   ],
   controllers: [QueueController],

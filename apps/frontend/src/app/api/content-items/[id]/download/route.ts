@@ -69,7 +69,7 @@ export async function POST(
         infoHash: contentItem.infoHash,
       },
       {
-        attempts: 3,
+        attempts: 1,
         backoff: {
           type: 'exponential',
           delay: 5000,

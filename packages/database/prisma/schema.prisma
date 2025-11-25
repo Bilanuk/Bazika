@@ -30,6 +30,7 @@ model Serial {
 
   episodes     Episode[]
   contentItems ContentItem[]
+  titleMappings SourceTitleMapping[]
 }
 
 model Episode {
@@ -42,8 +43,29 @@ model Episode {
   updatedAt     DateTime      @updatedAt
   serial        Serial        @relation(fields: [serialId], references: [id])
   contentItems  ContentItem[]
+  videoAnalysis VideoAnalysis?
 
   @@unique([serialId, episodeNumber])
+}
+
+model VideoAnalysis {
+  id              String         @id @default(uuid())
+  episodeId       String         @unique
+  episode         Episode        @relation(fields: [episodeId], references: [id])
+  visualEmbedding Float[]
+  tags            String[]
+  rating          String         @default("safe")
+  rawResults      Json
+  status          AnalysisStatus @default(PENDING)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+}
+
+enum AnalysisStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
 }
 
 model Toilet {
@@ -144,6 +166,19 @@ model Source {
   createdAt           DateTime      @default(now())
   updatedAt           DateTime      @updatedAt
   contentItems        ContentItem[]
+  titleMappings       SourceTitleMapping[]
+}
+
+model SourceTitleMapping {
+  id        String   @id @default(uuid())
+  sourceId  String?
+  rawTitle  String
+  serialId  String
+  serial    Serial   @relation(fields: [serialId], references: [id])
+  source    Source?  @relation(fields: [sourceId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([sourceId, rawTitle])
 }
 
 model ContentItem {
@@ -158,6 +193,7 @@ model ContentItem {
   episodeId          String? // Optional link to episode
   infoHash           String? // For torrent content
   downloadedFileName String? // Main video file name after download
+  quality            String? // Video quality extracted from title (480p, 720p, 1080p, etc)
   notificationSent   Boolean          @default(false) // Renamed from 'processed' - indicates if notifications were sent
   processingStatus   ProcessingStatus @default(NONE) // New field for video processing workflow
   createdAt          DateTime         @default(now())

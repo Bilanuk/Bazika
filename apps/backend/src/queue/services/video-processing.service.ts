@@ -29,7 +29,7 @@ export class VideoProcessingService {
         inputFileName,
       } as VideoProcessingJob,
       {
-        attempts: 2,
+        attempts: 1,
         backoff: {
           type: 'exponential',
           delay: 10000,

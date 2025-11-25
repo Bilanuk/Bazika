@@ -9,11 +9,14 @@ import '@vidstack/react/player/styles/default/theme.css';
 import '@vidstack/react/player/styles/default/layouts/video.css';
 import { Episode } from '@database';
 import { useState, useEffect, useRef } from 'react';
-import { TypographyH3, TypographyP } from './ui/Typography';
+import { TypographyH3, TypographyH4, TypographyP } from './ui/Typography';
 import { ScrollArea } from './ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { AlertCircle } from 'lucide-react';
 import { getVideoUrl } from '@/lib/video-utils';
+import { useQuery } from '@apollo/client';
+import { GET_RECOMMENDATIONS } from '@/queries/analysis';
+import { Badge } from '@/components/ui/badge';
 
 // Override Vidstack styles
 const styles = `
@@ -33,8 +36,25 @@ const styles = `
   }
 `;
 
+type EpisodeWithAnalysis = Episode & {
+  videoAnalysis?: {
+    tags: string[];
+    rating: string;
+  } | null;
+  contentItems?: Array<{
+    id: string;
+    title: string;
+    quality: string | null;
+    processingStatus: string;
+    url: string;
+    source: {
+      name: string;
+    };
+  }>;
+};
+
 interface VideoPlayerProps {
-  episodes: Episode[] | null | undefined;
+  episodes: EpisodeWithAnalysis[] | null | undefined;
   initialEpisodeNumber?: string;
 }
 
@@ -52,10 +72,19 @@ export default function VideoPlayer({
       ) ?? sortedEpisodes?.[0]
     : sortedEpisodes?.[0];
 
-  const [currentEpisode, setCurrentEpisode] = useState(initialEpisode);
+  const [currentEpisode, setCurrentEpisode] = useState<EpisodeWithAnalysis | undefined>(initialEpisode);
   const [isError, setIsError] = useState(false);
   const episodeRefs = useRef<{ [key: number]: HTMLButtonElement | null }>({});
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+
+  const { data: recommendationsData } = useQuery(GET_RECOMMENDATIONS, {
+    variables: { episodeId: currentEpisode?.id },
+    skip: !currentEpisode?.id,
+  });
+
+  useEffect(() => {
+    setCurrentEpisode(initialEpisode);
+  }, [initialEpisode]);
 
   useEffect(() => {
     if (initialEpisodeNumber) {
@@ -139,6 +168,79 @@ export default function VideoPlayer({
             </div>
           </ScrollArea>
         </div>
+      </div>
+
+      <div className='mt-8 col-span-4 space-y-8'>
+        {currentEpisode.contentItems && currentEpisode.contentItems.length > 0 && (
+          <div>
+            <TypographyH4 className='mb-4'>Debug: Content Items</TypographyH4>
+            <div className='space-y-2'>
+              {currentEpisode.contentItems.map((item) => (
+                <div key={item.id} className='border rounded-lg p-4 space-y-2'>
+                  <div className='flex items-center justify-between'>
+                    <TypographyP className='font-medium text-sm line-clamp-1'>
+                      {item.source.name}
+                    </TypographyP>
+                    <div className='flex gap-2'>
+                      {item.quality && (
+                        <Badge variant='outline'>{item.quality}</Badge>
+                      )}
+                      <Badge variant={
+                        item.processingStatus === 'PROCESSING_COMPLETED' ? 'default' :
+                        item.processingStatus.includes('FAILED') ? 'destructive' :
+                        'secondary'
+                      }>
+                        {item.processingStatus}
+                      </Badge>
+                    </div>
+                  </div>
+                  <TypographyP className='text-xs text-muted-foreground line-clamp-1'>
+                    {item.title}
+                  </TypographyP>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {currentEpisode.videoAnalysis && (
+          <div>
+            <TypographyH4 className='mb-4'>AI Style Analysis</TypographyH4>
+            <div className='flex flex-wrap gap-2'>
+              {currentEpisode.videoAnalysis.tags.map((tag) => (
+                <Badge key={tag} variant='secondary'>
+                  {tag}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {recommendationsData?.getRecommendations?.length > 0 && (
+          <div>
+            <TypographyH4 className='mb-4'>Visually Similar Episodes</TypographyH4>
+            <div className='grid grid-cols-4 gap-4'>
+              {recommendationsData.getRecommendations.map((rec: any) => (
+                <div
+                  key={rec.episode.id}
+                  className='border rounded-lg p-4 space-y-2'
+                >
+                  <div className='flex justify-between items-center'>
+                    <Badge variant={rec.score > 0.8 ? 'default' : 'outline'}>
+                      Match: {(rec.score * 100).toFixed(0)}%
+                    </Badge>
+                    <span className='text-xs text-muted-foreground'>
+                      Ep {rec.episode.episodeNumber}
+                    </span>
+                  </div>
+                  <TypographyP className='font-medium line-clamp-2'>
+                    {rec.episode.title || `Episode ${rec.episode.episodeNumber}`}
+                  </TypographyP>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </>
   );

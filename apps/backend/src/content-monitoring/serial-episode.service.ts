@@ -15,15 +15,34 @@ export class SerialEpisodeService {
   ) {}
 
   /**
-   * Find or create a serial based on parsed anime title
+   * Find a serial based on parsed anime title
+   * Returns null if not found - NO automatic creation
    */
-  async findOrCreateSerial(parsedTitle: ParsedAnimeTitle): Promise<Serial> {
+  async findSerial(parsedTitle: ParsedAnimeTitle): Promise<Serial | null> {
+    // 1. Try mapping first (SourceTitleMapping)
+    const mapping = await this.prisma.sourceTitleMapping.findFirst({
+      where: {
+        rawTitle: {
+          equals: parsedTitle.seriesName,
+          mode: 'insensitive',
+        },
+      },
+      include: { serial: true },
+    });
+
+    if (mapping?.serial) {
+      this.logger.debug(
+        `Found serial via mapping: ${parsedTitle.seriesName} -> ${mapping.serial.title}`,
+      );
+      return mapping.serial;
+    }
+
     const seriesTitle = this.animeParser.generateSeriesTitle(parsedTitle);
     const normalizedSeriesName = this.animeParser.normalizeSeriesName(
       parsedTitle.seriesName,
     );
 
-    // Try to find existing serial by exact title match first
+    // 2. Try to find existing serial by exact title match
     let serial = await this.prisma.serial.findFirst({
       where: {
         title: {
@@ -33,7 +52,7 @@ export class SerialEpisodeService {
       },
     });
 
-    // If not found, try normalized matching
+    // 3. If not found, try normalized matching
     if (!serial) {
       const existingSerials = await this.prisma.serial.findMany({
         select: { id: true, title: true },
@@ -56,27 +75,12 @@ export class SerialEpisodeService {
       }
     }
 
+    // If still not found, return null (Do NOT create new serial automatically)
     if (!serial) {
-      // Create new serial
       this.logger.log(
-        `Creating new serial: ${seriesTitle} (normalized: ${normalizedSeriesName})`,
+        `No matching serial found for: ${seriesTitle} (normalized: ${normalizedSeriesName}). Item will be orphaned.`,
       );
-      serial = await this.prisma.serial.create({
-        data: {
-          title: seriesTitle,
-          description: `Auto-generated from content monitoring: ${parsedTitle.originalTitle}`,
-          rating: 0,
-          imageUrl: '',
-        },
-      });
-
-      // Fetch AniList data for new serial
-      await this.enrichSerialWithAniListData(serial, parsedTitle.seriesName);
-    } else {
-      // Check if we need to update AniList data
-      if (this.aniListService.needsAniListSync(serial)) {
-        await this.enrichSerialWithAniListData(serial, parsedTitle.seriesName);
-      }
+      return null;
     }
 
     return serial;
@@ -190,7 +194,12 @@ export class SerialEpisodeService {
       }
 
       // Find or create serial (with AniList enrichment)
-      const serial = await this.findOrCreateSerial(parsedTitle);
+      const serial = await this.findSerial(parsedTitle);
+
+      if (!serial) {
+        // Return nulls if no serial found - item will be saved as orphan
+        return { serial: null, episode: null, parsedTitle };
+      }
 
       // Find or create episode
       const episode = await this.findOrCreateEpisode(

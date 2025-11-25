@@ -1,6 +1,6 @@
-import { Processor, WorkerHost } from '@nestjs/bullmq';
+import { InjectQueue, Processor, WorkerHost } from '@nestjs/bullmq';
 import { Logger } from '@nestjs/common';
-import { Job } from 'bullmq';
+import { Job, Queue } from 'bullmq';
 import { PrismaService } from '../../prisma/prisma.service';
 import { MinioService } from '../services/minio.service';
 import { exec } from 'child_process';
@@ -16,13 +16,16 @@ interface VideoProcessingJob {
   inputFileName: string;
 }
 
-@Processor('video-processing')
+@Processor('video-processing', {
+  concurrency: 1,
+})
 export class VideoProcessingProcessor extends WorkerHost {
   private readonly logger = new Logger(VideoProcessingProcessor.name);
 
   constructor(
     private prisma: PrismaService,
     private minioService: MinioService,
+    @InjectQueue('video-analysis') private analysisQueue: Queue,
   ) {
     super();
   }
@@ -120,6 +123,14 @@ export class VideoProcessingProcessor extends WorkerHost {
         where: { id: contentItemId },
         data: { processingStatus: 'PROCESSING_COMPLETED' },
       });
+
+      // Trigger analysis
+      await this.analysisQueue.add('analyze', {
+        contentItemId,
+        episodeId,
+        inputFileName,
+      });
+      this.logger.log(`Triggered analysis job for episode: ${episodeId}`);
 
       this.logger.log(`Successfully completed video processing job: ${job.id}`);
     } catch (error) {

@@ -10,6 +10,8 @@ import { Eye } from 'lucide-react';
 import { notFound } from 'next/navigation';
 import { MdOutlineImageNotSupported } from "react-icons/md";
 import SerialAdminSheet from '@/components/SerialAdminSheet';
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 
 interface Props {
   params: { id: string };
@@ -19,18 +21,29 @@ interface Props {
 export const revalidate = 3600;
 
 export default async function SerialPage({ params, searchParams }: Props) {
-  const serial = await prisma.serial.findUnique({
-    where: {
-      id: params.id,
-    },
-    include: {
-      episodes: {
-        orderBy: {
-          episodeNumber: 'asc',
+  const [serial, session] = await Promise.all([
+    prisma.serial.findUnique({
+      where: {
+        id: params.id,
+      },
+      include: {
+        episodes: {
+          include: {
+            videoAnalysis: true,
+            contentItems: {
+              include: {
+                source: true,
+              },
+            },
+          },
+          orderBy: {
+            episodeNumber: 'asc',
+          },
         },
       },
-    },
-  });
+    }),
+    getServerSession(authOptions),
+  ]);
 
   if (!serial) {
     notFound();
@@ -81,7 +94,7 @@ export default async function SerialPage({ params, searchParams }: Props) {
             <div className='space-y-2'>
               <div className='flex items-center justify-between'>
                 <TypographyH2>{serial.title}</TypographyH2>
-                <SerialAdminSheet serial={serial} />
+                <SerialAdminSheet serial={serial} user={session?.user} />
               </div>
               <div className='flex items-center gap-4'>
                 <Rating value={serial.rating} />

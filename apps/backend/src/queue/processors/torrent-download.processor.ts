@@ -17,7 +17,9 @@ interface TorrentDownloadJob {
   infoHash?: string;
 }
 
-@Processor('torrent-download')
+@Processor('torrent-download', {
+  concurrency: 1,
+})
 export class TorrentDownloadProcessor extends WorkerHost {
   private readonly logger = new Logger(TorrentDownloadProcessor.name);
 

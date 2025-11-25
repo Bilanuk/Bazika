@@ -1,0 +1,15 @@
+# Core
+numpy
+Pillow
+opencv-python-headless
+
+# For CLIP
+torch
+transformers
+sentence-transformers
+
+# For DeepDanbooru
+tensorflow
+
+
+

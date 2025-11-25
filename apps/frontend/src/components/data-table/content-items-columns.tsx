@@ -32,9 +32,6 @@ const handleDownloadTorrent = async (contentItem: ContentItem) => {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.error || 'Failed to queue download');
     }
-
-    // Show success message (you can replace with proper toast notification)
-    alert('Download queued successfully!');
   } catch (error) {
     console.error('Error queuing download:', error);
     // Show error message (you can replace with proper toast notification)
@@ -53,9 +50,6 @@ const handleProcessVideo = async (contentItem: ContentItem) => {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.error || 'Failed to queue video processing');
     }
-
-    // Show success message (you can replace with proper toast notification)
-    alert('Video processing queued successfully!');
   } catch (error) {
     console.error('Error queuing video processing:', error);
     // Show error message (you can replace with proper toast notification)

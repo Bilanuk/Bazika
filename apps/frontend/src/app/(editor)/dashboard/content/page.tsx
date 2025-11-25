@@ -164,6 +164,17 @@ export default function ContentItemsPage() {
   // Filter configurations (excluding serial and episode filters as they're now custom)
   const filterConfigs: FilterConfig[] = [
     {
+      key: 'quality',
+      label: 'Quality',
+      type: 'multiselect',
+      options: [
+        { value: '480p', label: '480p' },
+        { value: '720p', label: '720p' },
+        { value: '1080p', label: '1080p' },
+        { value: '2160p', label: '2160p (4K)' },
+      ],
+    },
+    {
       key: 'processingStatus',
       label: 'Status',
       type: 'multiselect',

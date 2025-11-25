@@ -15,6 +15,7 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search');
     
     // Parse filter parameters
+    const qualityFilter = searchParams.get('quality');
     const processingStatusFilter = searchParams.get('processingStatus');
     const notificationSentFilter = searchParams.get('notificationSent');
     const sourceNameFilter = searchParams.get('sourceName');
@@ -27,6 +28,14 @@ export async function GET(request: NextRequest) {
     // Source filter
     if (sourceId) {
       where.sourceId = sourceId;
+    }
+
+    // Quality filter
+    if (qualityFilter) {
+      const qualities = qualityFilter.split(',');
+      where.quality = {
+        in: qualities
+      };
     }
 
     // Source name filter (for multi-source filtering)

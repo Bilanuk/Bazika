@@ -3,3 +3,4 @@ node_modules
 .idea
 out
 .DS_Store
+apps/ml-service/models/*

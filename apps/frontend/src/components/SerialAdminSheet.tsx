@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useSession } from 'next-auth/react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -23,17 +23,20 @@ import {
   Database,
   AlertCircle,
   CheckCircle,
+  History,
   } from 'lucide-react';
 import { Serial } from '@database';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { UserRoles } from '@/types/user-roles';
+import { BackfillDialog } from './BackfillDialog';
 
 interface SerialAdminSheetProps {
   serial: Serial & { episodes?: any[] };
+  user?: { role?: string } | null;
 }
 
-export default function SerialAdminSheet({ serial }: SerialAdminSheetProps) {
-  const { data: session } = useSession();
+export default function SerialAdminSheet({ serial, user }: SerialAdminSheetProps) {
+  const router = useRouter();
   const [isRefetching, setIsRefetching] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [isUpdatingAnilistId, setIsUpdatingAnilistId] = useState(false);
@@ -44,9 +47,34 @@ export default function SerialAdminSheet({ serial }: SerialAdminSheetProps) {
     type: 'success' | 'error';
     text: string;
   } | null>(null);
+  const [showBackfillDialog, setShowBackfillDialog] = useState(false);
+  const [sources, setSources] = useState<any[]>([]);
+  const [loadingSources, setLoadingSources] = useState(false);
+
+  const fetchSources = async () => {
+    setLoadingSources(true);
+    try {
+      const response = await fetch('/api/sources');
+      if (response.ok) {
+        const data = await response.json();
+        setSources(data.sources || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch sources:', error);
+    } finally {
+      setLoadingSources(false);
+    }
+  };
+
+  // Fetch sources when backfill dialog is opened
+  useEffect(() => {
+    if (showBackfillDialog && sources.length === 0) {
+      fetchSources();
+    }
+  }, [showBackfillDialog, sources.length]);
 
   // Only show admin button for admin users
-  if (!session?.user || session.user.role !== UserRoles.ADMIN) {
+  if (!user || user.role !== UserRoles.ADMIN) {
     return null;
   }
 
@@ -69,7 +97,7 @@ export default function SerialAdminSheet({ serial }: SerialAdminSheetProps) {
           text: 'Successfully refetched data from AniList!',
         });
         // Optionally refresh the page or update the data
-        setTimeout(() => window.location.reload(), 2000);
+        router.refresh();
       } else {
         throw new Error('Failed to refetch data');
       }
@@ -257,6 +285,25 @@ export default function SerialAdminSheet({ serial }: SerialAdminSheetProps) {
             )}
           </div>
 
+          {/* Backfill Episodes Section */}
+          <div className='space-y-3'>
+            <div className='flex items-center gap-2'>
+              <History className='h-4 w-4' />
+              <Label className='text-base font-semibold'>Backfill Episodes</Label>
+            </div>
+            <p className='text-sm text-muted-foreground'>
+              Search and import old episodes from RSS sources that weren't in the feed.
+            </p>
+            <Button
+              onClick={() => setShowBackfillDialog(true)}
+              className='w-full gap-2'
+              variant='outline'
+            >
+              <History className='h-4 w-4' />
+              Open Backfill Tool
+            </Button>
+          </div>
+
           {/* Torrent Download Section */}
           <div className='space-y-3'>
             <div className='flex items-center gap-2'>
@@ -319,6 +366,22 @@ export default function SerialAdminSheet({ serial }: SerialAdminSheetProps) {
           </SheetClose>
         </SheetFooter>
       </SheetContent>
+
+      {/* Backfill Dialog */}
+      <BackfillDialog
+        serialId={serial.id}
+        serialTitle={serial.title}
+        sources={sources}
+        open={showBackfillDialog}
+        onClose={() => setShowBackfillDialog(false)}
+        onSuccess={() => {
+          setMessage({
+            type: 'success',
+            text: 'Episodes imported successfully!',
+          });
+          router.refresh();
+        }}
+      />
     </Sheet>
   );
 }

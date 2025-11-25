@@ -41,10 +41,13 @@ export class AnimeParserService {
         .replace(/\[MultiSub\]/gi, '') // Remove [MultiSub]
         .replace(/\[.*?Sub.*?\]/gi, '') // Remove any subtitle info
         .replace(/\[.*?DL.*?\]/gi, '') // Remove download info
+        .replace(/\[.*?Rip.*?\]/gi, '') // Remove [WEBRip] etc
         .trim();
 
       // Extract episode number - look for patterns like "- 10", "Episode 10", "Ep 10"
+      // Added support for space-less " - 08 " format often found in Erai-raws
       const episodePatterns = [
+        /\s-\s(\d+)(?:\s|\[|$)/, // " - 10" (Standard)
         /- (\d+)(?:\s|$)/, // "- 10"
         /Episode (\d+)/i, // "Episode 10"
         /Ep\.? (\d+)/i, // "Ep 10" or "Ep. 10"

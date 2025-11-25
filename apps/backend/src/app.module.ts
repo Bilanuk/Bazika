@@ -18,6 +18,7 @@ import { ContentMonitoringModule } from '@/content-monitoring/content-monitoring
 import { SourcesModule } from '@/sources/sources.module';
 import { QueueModule } from '@/queue/queue.module';
 import { ContentItemsModule } from '@/content-items/content-items.module';
+import { AnalysisModule } from '@/analysis/analysis.module';
 
 @Module({
   imports: [
@@ -63,6 +64,7 @@ import { ContentItemsModule } from '@/content-items/content-items.module';
     SourcesModule,
     QueueModule,
     ContentItemsModule,
+    AnalysisModule,
   ],
   providers: [PrismaService, GoogleStrategy, JwtStrategy],
 })

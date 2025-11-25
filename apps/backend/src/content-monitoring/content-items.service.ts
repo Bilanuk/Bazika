@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ContentItemsRepository } from './content-items.repository';
 import { ContentItem } from '@database';
 import { IContentItem } from '../common/interfaces/content-item.interface';
+import { extractQualityFromTitle } from '../common/utils/video-quality.util';
 
 @Injectable()
 export class ContentItemsService {
@@ -28,6 +29,9 @@ export class ContentItemsService {
         return null;
       }
 
+      // Extract quality from title
+      const quality = extractQualityFromTitle(contentData.title);
+
       // Create new content item with optional links
       const newItem = await this.contentItemsRepository.create({
         title: contentData.title,
@@ -35,6 +39,7 @@ export class ContentItemsService {
         url: contentData.url,
         guid: contentData.guid,
         publishedAt: contentData.publishedAt,
+        quality,
         source: { connect: { id: sourceId } },
         ...(options?.serialId && { serial: { connect: { id: options.serialId } } }),
         ...(options?.episodeId && { episode: { connect: { id: options.episodeId } } }),
