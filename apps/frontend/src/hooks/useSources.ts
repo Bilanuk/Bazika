@@ -6,10 +6,31 @@ export interface Source {
   type: string;
   url: string;
   isActive: boolean;
+  autoDownloadEnabled: boolean;
   lastChecked: string | null;
   createdAt: string;
   updatedAt: string;
   contentItems?: ContentItem[];
+}
+
+export interface Serial {
+  id: string;
+  title: string;
+  description: string;
+  rating: number;
+  imageUrl: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Episode {
+  id: string;
+  title: string;
+  url: string;
+  serialId: string;
+  episodeNumber: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ContentItem {
@@ -20,20 +41,28 @@ export interface ContentItem {
   guid: string;
   publishedAt: string;
   sourceId: string;
+  serialId: string | null;
+  episodeId: string | null;
   notificationSent: boolean;
   processingStatus: ProcessingStatus;
   createdAt: string;
   updatedAt: string;
   source?: Source;
+  serial?: Serial;
+  episode?: Episode;
 }
 
 export enum ProcessingStatus {
-  PENDING = 'PENDING',
-  QUEUED = 'QUEUED', 
+  NONE = 'NONE',
+  DOWNLOAD_QUEUED = 'DOWNLOAD_QUEUED',
+  DOWNLOADING = 'DOWNLOADING',
+  DOWNLOAD_COMPLETED = 'DOWNLOAD_COMPLETED',
+  DOWNLOAD_FAILED = 'DOWNLOAD_FAILED',
+  PROCESSING_QUEUED = 'PROCESSING_QUEUED',
   PROCESSING = 'PROCESSING',
-  COMPLETED = 'COMPLETED',
-  FAILED = 'FAILED',
-  SKIPPED = 'SKIPPED'
+  PROCESSING_COMPLETED = 'PROCESSING_COMPLETED',
+  PROCESSING_FAILED = 'PROCESSING_FAILED',
+  PROCESSING_SKIPPED = 'PROCESSING_SKIPPED',
 }
 
 interface UseSourcesReturn {

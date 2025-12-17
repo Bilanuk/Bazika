@@ -1,6 +1,7 @@
-import { Controller, Post, Get, Body, Logger } from '@nestjs/common';
+import { Controller, Post, Get, Body, Logger, Query } from '@nestjs/common';
 import { ContentMonitoringService } from './content-monitoring.service';
 import { NotificationService } from './notification.service';
+import { SerialEpisodeService } from './serial-episode.service';
 import { Public } from '@/decorators';
 
 @Controller('content-monitoring')
@@ -10,6 +11,7 @@ export class ContentMonitoringController {
   constructor(
     private contentMonitoringService: ContentMonitoringService,
     private notificationService: NotificationService,
+    private serialEpisodeService: SerialEpisodeService,
   ) {}
 
   @Public()
@@ -27,6 +29,73 @@ export class ContentMonitoringController {
     return {
       success: true,
       message: `Manual monitoring completed`,
+      data: result,
+    };
+  }
+
+  @Post('sync-anilist')
+  async syncAniList(@Query('limit') limit?: string) {
+    this.logger.log('Starting AniList sync');
+    const syncLimit = limit ? parseInt(limit, 10) : 10;
+
+    await this.serialEpisodeService.syncExistingSerialsWithAniList(syncLimit);
+
+    return {
+      success: true,
+      message: `AniList sync completed for up to ${syncLimit} serials`,
+    };
+  }
+
+  @Public()
+  @Post('backfill')
+  async backfillSources(
+    @Body()
+    body: {
+      sourceIds: string[];
+      startPage?: number;
+      endPage?: number;
+      throttleMs?: number;
+    },
+  ) {
+    this.logger.log(
+      `Starting backfill for sources: ${body.sourceIds.join(', ')}`,
+    );
+
+    const { sourceIds, startPage = 1, endPage = 10, throttleMs = 2000 } = body;
+
+    if (!sourceIds || sourceIds.length === 0) {
+      return {
+        success: false,
+        message: 'No source IDs provided',
+      };
+    }
+
+    if (startPage < 1 || endPage < startPage) {
+      return {
+        success: false,
+        message: 'Invalid page range',
+      };
+    }
+
+    if (endPage - startPage > 50) {
+      return {
+        success: false,
+        message: 'Page range too large (maximum 50 pages)',
+      };
+    }
+
+    const result = await this.contentMonitoringService.backfillSources(
+      sourceIds,
+      {
+        startPage,
+        endPage,
+        throttleMs,
+      },
+    );
+
+    return {
+      success: true,
+      message: `Backfill completed: ${result.newItems} new items from ${result.totalItems} total items`,
       data: result,
     };
   }

@@ -7,6 +7,7 @@ import { EpisodesModule } from '@/episodes/episodes.module';
 
 @Module({
   imports: [forwardRef(() => EpisodesModule)],
+  controllers: [],
   providers: [
     SerialsResolver,
     SerialsService,

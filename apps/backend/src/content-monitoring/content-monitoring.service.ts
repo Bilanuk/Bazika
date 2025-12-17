@@ -4,6 +4,8 @@ import { SourcesService } from '../sources/sources.service';
 import { ContentItemsService } from './content-items.service';
 import { RssMonitoringService } from './rss-monitoring.service';
 import { NotificationService } from './notification.service';
+import { SerialEpisodeService } from './serial-episode.service';
+import { TorrentDownloadService } from '../queue/services/torrent-download.service';
 import { SourceType } from '@database';
 
 @Injectable()
@@ -15,10 +17,11 @@ export class ContentMonitoringService {
     private contentItemsService: ContentItemsService,
     private rssMonitoringService: RssMonitoringService,
     private notificationService: NotificationService,
+    private serialEpisodeService: SerialEpisodeService,
+    private torrentDownloadService: TorrentDownloadService,
   ) {}
 
-  // Run every 15 minutes
-  @Cron(CronExpression.EVERY_10_MINUTES)
+  @Cron(CronExpression.EVERY_MINUTE)
   async monitorAllSources(): Promise<void> {
     this.logger.log('Starting scheduled content monitoring...');
 
@@ -44,15 +47,86 @@ export class ContentMonitoringService {
                 ) {
                   continue;
                 }
-              }
 
-              const newItem = await this.contentItemsService.createContentItem(
-                source.id,
-                contentData,
-              );
+                // Process anime content and link to serial/episode
+                const { serial, episode } =
+                  await this.serialEpisodeService.processAnimeContent(
+                    contentData.title,
+                    contentData.url,
+                  );
 
-              if (newItem) {
-                newContentItems.push(newItem);
+                const newItem =
+                  await this.contentItemsService.createContentItem(
+                    source.id,
+                    contentData,
+                    {
+                      serialId: serial?.id,
+                      episodeId: episode?.id,
+                      infoHash: contentData.infoHash,
+                    },
+                  );
+
+                if (newItem) {
+                  newContentItems.push(newItem);
+
+                  // Automatically queue torrent download if enabled for this source
+                  if (source.autoDownloadEnabled && newItem.url) {
+                    const isMagnetLink = newItem.url.startsWith('magnet:');
+                    const isTorrentFile = newItem.url.endsWith('.torrent');
+                    if (isMagnetLink || isTorrentFile) {
+                      try {
+                        await this.torrentDownloadService.queueDownload(
+                          newItem.id,
+                          newItem.url,
+                          newItem.infoHash || undefined,
+                        );
+                        this.logger.log(
+                          `Auto-queued torrent download for content item: ${newItem.id} (source: ${source.name})`,
+                        );
+                      } catch (error) {
+                        this.logger.error(
+                          `Failed to auto-queue torrent download for ${newItem.id}: ${error.message}`,
+                        );
+                      }
+                    }
+                  }
+                }
+              } else {
+                // For non-anime sources, create content item without linking
+                const newItem =
+                  await this.contentItemsService.createContentItem(
+                    source.id,
+                    contentData,
+                    {
+                      infoHash: contentData.infoHash,
+                    },
+                  );
+
+                if (newItem) {
+                  newContentItems.push(newItem);
+
+                  // Automatically queue torrent download if enabled for this source
+                  if (source.autoDownloadEnabled && newItem.url) {
+                    const isMagnetLink = newItem.url.startsWith('magnet:');
+                    const isTorrentFile = newItem.url.endsWith('.torrent');
+                    if (isMagnetLink || isTorrentFile) {
+                      try {
+                        await this.torrentDownloadService.queueDownload(
+                          newItem.id,
+                          newItem.url,
+                          newItem.infoHash || undefined,
+                        );
+                        this.logger.log(
+                          `Auto-queued torrent download for content item: ${newItem.id} (source: ${source.name})`,
+                        );
+                      } catch (error) {
+                        this.logger.error(
+                          `Failed to auto-queue torrent download for ${newItem.id}: ${error.message}`,
+                        );
+                      }
+                    }
+                  }
+                }
               }
             }
 
@@ -104,15 +178,61 @@ export class ContentMonitoringService {
           await this.rssMonitoringService.fetchRSSFeed(source);
 
         for (const contentData of contentItems) {
-          const newItem = await this.contentItemsService.createContentItem(
-            source.id,
-            contentData,
-          );
+          let newItem;
+
+          if (source.name.toLowerCase().includes('nyaa')) {
+            // Process anime content
+            const { serial, episode } =
+              await this.serialEpisodeService.processAnimeContent(
+                contentData.title,
+                contentData.url,
+              );
+
+            newItem = await this.contentItemsService.createContentItem(
+              source.id,
+              contentData,
+              {
+                serialId: serial?.id,
+                episodeId: episode?.id,
+                infoHash: contentData.infoHash,
+              },
+            );
+          } else {
+            newItem = await this.contentItemsService.createContentItem(
+              source.id,
+              contentData,
+              {
+                infoHash: contentData.infoHash,
+              },
+            );
+          }
 
           if (newItem) {
             totalNewItems++;
             await this.notificationService.notifyNewContent(newItem);
             await this.contentItemsService.markAsNotified(newItem.id);
+
+            // Automatically queue torrent download if enabled for this source
+            if (source.autoDownloadEnabled && newItem.url) {
+              const isMagnetLink = newItem.url.startsWith('magnet:');
+              const isTorrentFile = newItem.url.endsWith('.torrent');
+              if (isMagnetLink || isTorrentFile) {
+                try {
+                  await this.torrentDownloadService.queueDownload(
+                    newItem.id,
+                    newItem.url,
+                    newItem.infoHash || undefined,
+                  );
+                  this.logger.log(
+                    `Auto-queued torrent download for content item: ${newItem.id} (source: ${source.name})`,
+                  );
+                } catch (error) {
+                  this.logger.error(
+                    `Failed to auto-queue torrent download for ${newItem.id}: ${error.message}`,
+                  );
+                }
+              }
+            }
           }
         }
 
@@ -149,7 +269,194 @@ export class ContentMonitoringService {
         publishedAt: item.publishedAt,
         notificationSent: item.notificationSent,
         processingStatus: item.processingStatus,
+        serialId: item.serialId,
+        episodeId: item.episodeId,
+        infoHash: item.infoHash,
       })),
     };
+  }
+
+  /**
+   * Backfill RSS feeds with historical data
+   */
+  async backfillSources(
+    sourceIds: string[],
+    options: {
+      startPage?: number;
+      endPage?: number;
+      throttleMs?: number;
+    } = {},
+  ): Promise<{
+    totalItems: number;
+    newItems: number;
+    sources: Array<{
+      sourceId: string;
+      sourceName: string;
+      itemsFound: number;
+      newItems: number;
+      error?: string;
+    }>;
+  }> {
+    const { startPage = 1, endPage = 10, throttleMs = 2000 } = options;
+
+    this.logger.log(
+      `Starting backfill for ${sourceIds.length} sources (pages ${startPage}-${endPage})`,
+    );
+
+    const results = {
+      totalItems: 0,
+      newItems: 0,
+      sources: [] as Array<{
+        sourceId: string;
+        sourceName: string;
+        itemsFound: number;
+        newItems: number;
+        error?: string;
+      }>,
+    };
+
+    for (const sourceId of sourceIds) {
+      try {
+        const source = await this.sourcesService.getSourceById(sourceId);
+        if (!source) {
+          results.sources.push({
+            sourceId,
+            sourceName: 'Unknown',
+            itemsFound: 0,
+            newItems: 0,
+            error: 'Source not found',
+          });
+          continue;
+        }
+
+        if (source.type !== SourceType.RSS) {
+          results.sources.push({
+            sourceId,
+            sourceName: source.name,
+            itemsFound: 0,
+            newItems: 0,
+            error: 'Only RSS sources support backfilling',
+          });
+          continue;
+        }
+
+        this.logger.log(`Backfilling source: ${source.name}`);
+
+        // Fetch historical data
+        const contentItems = await this.rssMonitoringService.backfillRSSFeed(
+          source,
+          {
+            startPage,
+            endPage,
+            throttleMs,
+            onProgress: (page, totalPages, itemsFound) => {
+              this.logger.log(
+                `${source.name}: Page ${page}/${totalPages} - ${itemsFound} items found`,
+              );
+            },
+          },
+        );
+
+        let newItemsCount = 0;
+
+        // Process each content item
+        for (const contentData of contentItems) {
+          let newItem;
+
+          if (source.name.toLowerCase().includes('nyaa')) {
+            // Filter for anime content
+            if (!this.rssMonitoringService.isNyaaAnimeItem(contentData.title)) {
+              continue;
+            }
+
+            // Process anime content and link to serial/episode
+            const { serial, episode } =
+              await this.serialEpisodeService.processAnimeContent(
+                contentData.title,
+                contentData.url,
+              );
+
+            newItem = await this.contentItemsService.createContentItem(
+              source.id,
+              contentData,
+              {
+                serialId: serial?.id,
+                episodeId: episode?.id,
+                infoHash: contentData.infoHash,
+              },
+            );
+          } else {
+            newItem = await this.contentItemsService.createContentItem(
+              source.id,
+              contentData,
+              {
+                infoHash: contentData.infoHash,
+              },
+            );
+          }
+
+          if (newItem) {
+            newItemsCount++;
+
+            // Automatically queue torrent download if enabled for this source
+            if (source.autoDownloadEnabled && newItem.url) {
+              const isMagnetLink = newItem.url.startsWith('magnet:');
+              const isTorrentFile = newItem.url.endsWith('.torrent');
+              if (isMagnetLink || isTorrentFile) {
+                try {
+                  await this.torrentDownloadService.queueDownload(
+                    newItem.id,
+                    newItem.url,
+                    newItem.infoHash || undefined,
+                  );
+                  this.logger.log(
+                    `Auto-queued torrent download for content item: ${newItem.id} (source: ${source.name})`,
+                  );
+                } catch (error) {
+                  this.logger.error(
+                    `Failed to auto-queue torrent download for ${newItem.id}: ${error.message}`,
+                  );
+                }
+              }
+            }
+          }
+        }
+
+        results.sources.push({
+          sourceId: source.id,
+          sourceName: source.name,
+          itemsFound: contentItems.length,
+          newItems: newItemsCount,
+        });
+
+        results.totalItems += contentItems.length;
+        results.newItems += newItemsCount;
+
+        // Update last checked timestamp
+        await this.sourcesService.updateSourceLastChecked(source.id);
+
+        this.logger.log(
+          `Backfill completed for ${source.name}: ${contentItems.length} items found, ${newItemsCount} new items`,
+        );
+      } catch (error) {
+        this.logger.error(
+          `Failed to backfill source ${sourceId}: ${error.message}`,
+        );
+
+        results.sources.push({
+          sourceId,
+          sourceName: 'Unknown',
+          itemsFound: 0,
+          newItems: 0,
+          error: error.message,
+        });
+      }
+    }
+
+    this.logger.log(
+      `Backfill completed: ${results.totalItems} total items, ${results.newItems} new items`,
+    );
+
+    return results;
   }
 }

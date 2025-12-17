@@ -50,4 +50,20 @@ export class ContentItemsRepository {
       include: { source: true },
     });
   }
+
+  async findBySerialId(serialId: string): Promise<ContentItem[]> {
+    return this.prisma.contentItem.findMany({
+      where: { serialId },
+      orderBy: { publishedAt: 'desc' },
+      include: { source: true, serial: true, episode: true },
+    });
+  }
+
+  async findByEpisodeId(episodeId: string): Promise<ContentItem[]> {
+    return this.prisma.contentItem.findMany({
+      where: { episodeId },
+      orderBy: { publishedAt: 'desc' },
+      include: { source: true, serial: true, episode: true },
+    });
+  }
 }

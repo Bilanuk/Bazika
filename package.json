@@ -22,6 +22,7 @@
     "turbo": "^2.0.12"
   },
   "dependencies": {
+    "@modelcontextprotocol/server-postgres": "^0.6.2",
     "@vidstack/react": "^0.6.15"
   }
 }

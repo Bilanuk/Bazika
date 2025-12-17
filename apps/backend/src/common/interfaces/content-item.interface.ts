@@ -4,6 +4,7 @@ export interface IContentItem {
   url: string;
   guid: string;
   publishedAt: Date;
+  infoHash?: string;
 }
 
 export interface IRSSItem {
@@ -15,4 +16,5 @@ export interface IRSSItem {
   content?: string;
   contentSnippet?: string;
   isoDate?: string;
+  'nyaa:infoHash'?: string;
 }

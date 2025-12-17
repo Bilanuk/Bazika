@@ -1,6 +1,5 @@
 import React from 'react';
 import UserMenu from './UserMenu';
-import ThemeSwitch from '@/components/ThemeSwitch';
 import Logo from '@components/Logo';
 
 const Appbar = () => {
@@ -9,7 +8,6 @@ const Appbar = () => {
       <div className='container flex w-full justify-between gap-4'>
         <Logo />
         <div className='flex gap-4'>
-          <ThemeSwitch />
           <UserMenu />
         </div>
       </div>

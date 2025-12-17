@@ -10,6 +10,8 @@ declare global {
       GOOGLE_CLIENT_SECRET: string;
 
       NEXT_PUBLIC_DATABASE_URL: string;
+      NEXT_PUBLIC_MINIO_HOST?: string;
+      NEXT_PUBLIC_MINIO_PORT?: string;
     }
   }
 }
