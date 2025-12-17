@@ -3,6 +3,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { TorrentDownloadService } from '@/queue/services/torrent-download.service';
 import { VideoProcessingService } from '@/queue/services/video-processing.service';
 import { MinioService } from '@/queue/services/minio.service';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 
 @Injectable()
 export class ContentItemsService {
@@ -13,6 +15,7 @@ export class ContentItemsService {
     private torrentDownloadService: TorrentDownloadService,
     private videoProcessingService: VideoProcessingService,
     private minioService: MinioService,
+    @InjectQueue('video-analysis') private videoAnalysisQueue: Queue,
   ) {}
 
   async getContentItem(contentItemId: string) {
@@ -106,6 +109,30 @@ export class ContentItemsService {
     this.logger.log(
       `Queued video processing for content item: ${contentItemId}, episode: ${contentItem.episode.id}`,
     );
+  }
+
+  async queueAnalysis(contentItemId: string, episodeId: string): Promise<void> {
+    const contentItem = await this.prisma.contentItem.findUnique({
+      where: { id: contentItemId },
+    });
+
+    if (!contentItem) throw new Error('Content item not found');
+
+    let videoFileName = contentItem.downloadedFileName;
+    if (!videoFileName) {
+      videoFileName = await this.findVideoFile(contentItemId);
+    }
+
+    if (!videoFileName) throw new Error('No video file found for analysis (must be downloaded first)');
+
+    // Add to analysis queue
+    await this.videoAnalysisQueue.add('analyze', {
+      contentItemId,
+      episodeId,
+      inputFileName: videoFileName,
+    });
+
+    this.logger.log(`Manually queued video analysis for ${contentItemId}`);
   }
 
   async reprocessContentItem(

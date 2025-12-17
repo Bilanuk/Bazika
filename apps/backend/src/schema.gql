@@ -67,18 +67,12 @@ type UserEdge {
   node: User!
 }
 
-type Recommendation {
-  episode: Episode!
-  score: Float!
-}
-
 type Query {
   user: User!
   serial(id: String!): Serial!
   getSerials(first: Float, last: Float, after: String, before: String, query: String): SerialConnection!
   episode(id: String, serialId: String): Episode!
   getEpisodes(first: Float, last: Float, after: String, before: String, query: String): EpisodeConnection!
-  getRecommendations(episodeId: String!): [Recommendation!]!
 }
 
 type Mutation {

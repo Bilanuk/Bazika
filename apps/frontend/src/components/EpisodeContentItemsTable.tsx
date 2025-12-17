@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Download, Loader2, RefreshCw } from 'lucide-react';
+import { Download, Loader2, RefreshCw, MoreHorizontal, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   Select,
@@ -20,6 +20,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface ContentItem {
   id: string;
@@ -69,7 +77,6 @@ export function EpisodeContentItemsTable({ items, episodeId, isAdmin = false }: 
     setProcessingItems(prev => new Set(prev).add(itemId));
     
     try {
-      // Call Next.js API route (which proxies to backend)
       const response = await fetch(`/api/content-items/${itemId}/process`, {
         method: 'POST',
       });
@@ -81,7 +88,6 @@ export function EpisodeContentItemsTable({ items, episodeId, isAdmin = false }: 
 
       toast.success('Processing started!');
       
-      // Refresh page after a delay to show updated status
       setTimeout(() => {
         window.location.reload();
       }, 1000);
@@ -108,7 +114,6 @@ export function EpisodeContentItemsTable({ items, episodeId, isAdmin = false }: 
     setProcessingItems(prev => new Set(prev).add(itemId));
     
     try {
-      // Call Next.js API route (which proxies to backend)
       const response = await fetch(`/api/content-items/${itemId}/reprocess`, {
         method: 'POST',
         headers: {
@@ -124,13 +129,43 @@ export function EpisodeContentItemsTable({ items, episodeId, isAdmin = false }: 
 
       toast.success('Reprocessing started!');
       
-      // Refresh page after a delay to show updated status
       setTimeout(() => {
         window.location.reload();
       }, 1000);
     } catch (error: any) {
       console.error('Error reprocessing item:', error);
       const errorMessage = error?.message || 'Failed to start reprocessing';
+      toast.error(errorMessage);
+    } finally {
+      setProcessingItems(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(itemId);
+        return newSet;
+      });
+    }
+  };
+
+  const handleAnalyze = async (itemId: string) => {
+    setProcessingItems(prev => new Set(prev).add(itemId));
+    
+    try {
+      const response = await fetch(`/api/content-items/${itemId}/analyze`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ episodeId }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to queue analysis');
+      }
+
+      toast.success('Analysis queued!');
+    } catch (error: any) {
+      console.error('Error analyzing item:', error);
+      const errorMessage = error?.message || 'Failed to queue analysis';
       toast.error(errorMessage);
     } finally {
       setProcessingItems(prev => {
@@ -159,16 +194,17 @@ export function EpisodeContentItemsTable({ items, episodeId, isAdmin = false }: 
   };
 
   const canProcess = (status: string) => {
-    // Show "Process" only for items that haven't been processed yet
     return status === 'NONE';
   };
 
   const canReprocess = (status: string) => {
-    // Show "Reprocess" for items that were processed (successfully or failed) but not currently in progress
     const inProgressStatuses = ['DOWNLOAD_QUEUED', 'DOWNLOADING', 'PROCESSING_QUEUED', 'PROCESSING'];
     const notProcessedStatuses = ['NONE'];
-    
     return !inProgressStatuses.includes(status) && !notProcessedStatuses.includes(status);
+  };
+
+  const canAnalyze = (status: string) => {
+    return ['COMPLETED', 'DOWNLOAD_COMPLETED', 'PROCESSING_COMPLETED'].includes(status);
   };
 
   if (items.length === 0) {
@@ -213,7 +249,7 @@ export function EpisodeContentItemsTable({ items, episodeId, isAdmin = false }: 
             <TableHead className='w-[100px]'>Quality</TableHead>
             <TableHead className='w-[120px]'>Source</TableHead>
             <TableHead className='w-[150px]'>Status</TableHead>
-            {isAdmin && <TableHead className='w-[100px] text-right'>Actions</TableHead>}
+            {isAdmin && <TableHead className='w-[50px]'></TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -245,37 +281,44 @@ export function EpisodeContentItemsTable({ items, episodeId, isAdmin = false }: 
                 {getStatusBadge(item.processingStatus)}
               </TableCell>
               {isAdmin && (
-                <TableCell className='text-right'>
-                  {canProcess(item.processingStatus) && (
-                    <Button
-                      size='sm'
-                      variant='outline'
-                      onClick={() => handleProcess(item.id)}
-                      disabled={processingItems.has(item.id)}
-                    >
-                      {processingItems.has(item.id) ? (
-                        <Loader2 className='h-3 w-3 animate-spin' />
-                      ) : (
-                        <Download className='h-3 w-3' />
+                <TableCell>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" disabled={processingItems.has(item.id)}>
+                        {processingItems.has(item.id) ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <MoreHorizontal className="h-4 w-4" />
+                        )}
+                        <span className="sr-only">Actions</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      
+                      {canProcess(item.processingStatus) && (
+                        <DropdownMenuItem onClick={() => handleProcess(item.id)}>
+                          <Download className="mr-2 h-4 w-4" />
+                          Process (Download)
+                        </DropdownMenuItem>
                       )}
-                      <span className='ml-1'>Process</span>
-                    </Button>
-                  )}
-                  {canReprocess(item.processingStatus) && (
-                    <Button
-                      size='sm'
-                      variant='outline'
-                      onClick={() => handleReprocess(item.id)}
-                      disabled={processingItems.has(item.id)}
-                    >
-                      {processingItems.has(item.id) ? (
-                        <Loader2 className='h-3 w-3 animate-spin' />
-                      ) : (
-                        <RefreshCw className='h-3 w-3' />
+                      
+                      {canReprocess(item.processingStatus) && (
+                        <DropdownMenuItem onClick={() => handleReprocess(item.id)}>
+                          <RefreshCw className="mr-2 h-4 w-4" />
+                          Reprocess Full
+                        </DropdownMenuItem>
                       )}
-                      <span className='ml-1'>Reprocess</span>
-                    </Button>
-                  )}
+
+                      {canAnalyze(item.processingStatus) && (
+                        <DropdownMenuItem onClick={() => handleAnalyze(item.id)}>
+                          <Sparkles className="mr-2 h-4 w-4" />
+                          Re-analyze
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               )}
             </TableRow>
@@ -287,4 +330,3 @@ export function EpisodeContentItemsTable({ items, episodeId, isAdmin = false }: 
     </div>
   );
 }
-

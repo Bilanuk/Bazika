@@ -76,8 +76,8 @@ export async function POST(
             type: 'exponential',
             delay: 5000,
           },
-          removeOnComplete: 10,
-          removeOnFail: 5,
+          removeOnComplete: false,
+          removeOnFail: false,
         }
       );
     } else {
@@ -107,8 +107,8 @@ export async function POST(
             type: 'exponential',
             delay: 5000,
           },
-          removeOnComplete: 10,
-          removeOnFail: 5,
+          removeOnComplete: false,
+          removeOnFail: false,
         }
       );
     }

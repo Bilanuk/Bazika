@@ -87,6 +87,24 @@ export class AnalysisProcessor extends WorkerHost {
           rawResults: result as any, // Cast to any for Json type
         },
       });
+
+      // 5. Update Episode Embedding & Tags
+      this.logger.log('Updating episode embedding and tags...');
+      await this.analysisService.updateEpisodeEmbedding(
+        episodeId,
+        result.visual_embedding,
+        result.tags,
+      );
+
+      // 6. Trigger Serial Aggregation
+      this.logger.log('Triggering serial aggregation...');
+      const episode = await this.prisma.episode.findUnique({
+        where: { id: episodeId },
+      });
+      if (episode?.serialId) {
+        await this.analysisService.updateSerialAggregation(episode.serialId);
+        this.logger.log(`Serial aggregation updated for ${episode.serialId}`);
+      }
     } catch (error) {
       this.logger.error(`Analysis failed for job ${job.id}: ${error.message}`);
 

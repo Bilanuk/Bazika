@@ -10,6 +10,7 @@ import { Eye } from 'lucide-react';
 import { notFound } from 'next/navigation';
 import { MdOutlineImageNotSupported } from "react-icons/md";
 import SerialAdminSheet from '@/components/SerialAdminSheet';
+import { SimilarSerialsCarousel } from '@/components/SimilarSerialsCarousel';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 
@@ -129,6 +130,7 @@ export default async function SerialPage({ params, searchParams }: Props) {
           initialEpisodeNumber={searchParams.episode}
           isAdmin={session?.user?.role === 'ADMIN'}
         />
+        <SimilarSerialsCarousel serialId={serial.id} />
       </PageWrapper>
     </main>
   );

@@ -9,6 +9,7 @@ import '@vidstack/react/player/styles/default/theme.css';
 import '@vidstack/react/player/styles/default/layouts/video.css';
 import { Episode } from '@database';
 import { useState, useEffect, useRef } from 'react';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { TypographyH3, TypographyH4, TypographyP } from './ui/Typography';
 import { ScrollArea } from './ui/scroll-area';
 import { cn } from '@/lib/utils';
@@ -65,6 +66,10 @@ export default function VideoPlayer({
   initialEpisodeNumber,
   isAdmin = false,
 }: VideoPlayerProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   const sortedEpisodes = episodes
     ?.slice()
     .sort((a, b) => a.episodeNumber - b.episodeNumber);
@@ -157,6 +162,11 @@ export default function VideoPlayer({
                   onClick={() => {
                     setCurrentEpisode(episode);
                     setIsError(false);
+
+                    // Update URL with new episode number
+                    const params = new URLSearchParams(searchParams?.toString());
+                    params.set('episode', episode.episodeNumber.toString());
+                    router.push(`${pathname}?${params.toString()}`, { scroll: false });
                   }}
                   className={cn(
                     'rounded-lg p-3 text-left transition-colors hover:bg-secondary',
@@ -174,7 +184,7 @@ export default function VideoPlayer({
       </div>
 
       <div className='mt-8 col-span-4 space-y-8'>
-        {isAdmin && currentEpisode.contentItems && currentEpisode.contentItems.length > 0 && (
+        {isAdmin && false && currentEpisode.contentItems && currentEpisode.contentItems.length > 0 && (
           <div>
             <TypographyH4 className='mb-4'>Content Items</TypographyH4>
             <EpisodeContentItemsTable 
@@ -185,9 +195,21 @@ export default function VideoPlayer({
           </div>
         )}
 
-        {currentEpisode.videoAnalysis && (
+        {currentEpisode.videoAnalysis && false && (
           <div>
             <TypographyH4 className='mb-4'>AI Style Analysis</TypographyH4>
+            
+            <div className='flex items-center gap-2 mb-4'>
+              <span className='text-sm font-medium'>Content Rating:</span>
+              <Badge variant={
+                currentEpisode.videoAnalysis.rating === 'explicit' ? 'destructive' :
+                currentEpisode.videoAnalysis.rating === 'questionable' ? 'secondary' : 
+                'outline'
+              }>
+                {(currentEpisode.videoAnalysis.rating || 'safe').toUpperCase()}
+              </Badge>
+            </div>
+
             <div className='flex flex-wrap gap-2'>
               {currentEpisode.videoAnalysis.tags.map((tag) => (
                 <Badge key={tag} variant='secondary'>

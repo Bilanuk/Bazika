@@ -28,6 +28,10 @@ model Serial {
   anilistDescription String? // Rich description from AniList
   lastAnilistSync    DateTime? // When we last synced with AniList
 
+  // ML/AI fields
+  embedding Unsupported("vector(512)")? // Aggregated embedding from all episodes (for recommendations)
+  tags      String[]                    // Aggregated tags from all episodes
+
   episodes     Episode[]
   contentItems ContentItem[]
   titleMappings SourceTitleMapping[]
@@ -44,6 +48,10 @@ model Episode {
   serial        Serial        @relation(fields: [serialId], references: [id])
   contentItems  ContentItem[]
   videoAnalysis VideoAnalysis?
+
+  // ML/AI fields
+  embedding Unsupported("vector(512)")? // CLIP embedding for this episode
+  tags      String[]                    // Tags for this episode
 
   @@unique([serialId, episodeNumber])
 }
@@ -235,4 +243,5 @@ enum ProcessingStatus {
   PROCESSING_COMPLETED // All processing completed successfully
   PROCESSING_FAILED // Processing failed (can be retried)
   PROCESSING_SKIPPED // Item was skipped (e.g., not suitable for processing)
+  PENDING_SEEDERS // Download failed due to insufficient seeders, will retry automatically
 }

@@ -13,6 +13,15 @@ export async function POST(
     await requireAdmin();
 
     const contentItemId = params.id;
+    const body = await request.json();
+    const { episodeId } = body;
+
+    if (!episodeId) {
+      return NextResponse.json(
+        { error: 'Episode ID is required' },
+        { status: 400 }
+      );
+    }
 
     // Find the content item
     const contentItem = await prisma.contentItem.findUnique({
@@ -26,21 +35,9 @@ export async function POST(
       );
     }
 
-    // Check if the content item has a torrent URL
-    if (!contentItem.url) {
+    if (!contentItem.downloadedFileName) {
       return NextResponse.json(
-        { error: 'Content item has no torrent URL' },
-        { status: 400 }
-      );
-    }
-
-    // Validate that the URL looks like a torrent (magnet link or .torrent file)
-    const isMagnetLink = contentItem.url.startsWith('magnet:');
-    const isTorrentFile = contentItem.url.endsWith('.torrent');
-    
-    if (!isMagnetLink && !isTorrentFile) {
-      return NextResponse.json(
-        { error: 'Content item URL is not a valid torrent URL' },
+        { error: 'No downloaded file recorded. Try using "Reprocess" to download again.' },
         { status: 400 }
       );
     }
@@ -52,30 +49,24 @@ export async function POST(
       password: process.env.REDIS_PASSWORD,
     });
 
-    const downloadQueue = new Queue('torrent-download', { connection: redis });
+    const analysisQueue = new Queue('video-analysis', { connection: redis });
 
-    // Update status to DOWNLOAD_QUEUED
-    await prisma.contentItem.update({
-      where: { id: contentItemId },
-      data: { processingStatus: 'DOWNLOAD_QUEUED' },
-    });
-
-    // Queue the download job
-    await downloadQueue.add(
-      'download-torrent',
+    // Queue the analysis job
+    await analysisQueue.add(
+      'analyze',
       {
         contentItemId,
-        torrentUrl: contentItem.url,
-        infoHash: contentItem.infoHash,
+        episodeId,
+        inputFileName: contentItem.downloadedFileName,
       },
       {
-        attempts: 1,
+        attempts: 3,
         backoff: {
           type: 'exponential',
           delay: 5000,
         },
-        removeOnComplete: false,
-        removeOnFail: false,
+        removeOnComplete: 100,
+        removeOnFail: 100,
       }
     );
 
@@ -84,11 +75,11 @@ export async function POST(
 
     return NextResponse.json({
       success: true,
-      message: 'Download queued successfully',
+      message: 'Analysis queued',
       contentItemId,
     });
   } catch (error) {
-    console.error('Error queuing download:', error);
+    console.error('Error queuing analysis:', error);
 
     // Handle auth errors
     if (
@@ -100,8 +91,16 @@ export async function POST(
     }
 
     return NextResponse.json(
-      { error: 'Failed to queue download' },
+      { error: 'Failed to queue analysis' },
       { status: 500 }
     );
   }
 }
+
+
+
+
+
+
+
+

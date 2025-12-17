@@ -56,4 +56,14 @@ export class ContentItemsController {
       contentItemId: id,
     };
   }
+
+  @Post(':id/analyze')
+  @HttpCode(HttpStatus.OK)
+  async analyzeContentItem(
+    @Param('id') id: string,
+    @Body() body: { episodeId: string },
+  ) {
+    await this.contentItemsService.queueAnalysis(id, body.episodeId);
+    return { success: true, message: 'Analysis queued' };
+  }
 }

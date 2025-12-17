@@ -1,25 +1,38 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 import { PrismaService } from '../../prisma/prisma.service';
 import { MinioService } from '../services/minio.service';
 import { VideoProcessingService } from '../services/video-processing.service';
 import { Readable } from 'stream';
-import { exec } from 'child_process';
-import { promisify } from 'util';
+import { spawn } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 
-const execAsync = promisify(exec);
+// Popular open trackers to speed up downloads
+const TRACKERS = [
+  'udp://tracker.opentrackr.org:1337/announce',
+  'udp://open.stealth.si:80/announce',
+  'udp://tracker.torrent.eu.org:451/announce',
+  'udp://tracker.moeking.me:6969/announce',
+  'http://tracker.ipv6tracker.org:80/announce',
+  'udp://9.rarbg.me:2710/announce',
+  'udp://9.rarbg.to:2710/announce',
+  'udp://tracker.tiny-vps.com:6969/announce',
+  'udp://tracker.cyberia.is:6969/announce',
+];
 
 interface TorrentDownloadJob {
   contentItemId: string;
   torrentUrl: string;
   infoHash?: string;
+  retryAttempt?: number;
 }
 
 @Processor('torrent-download', {
-  concurrency: 1,
+  concurrency: 5,
 })
 export class TorrentDownloadProcessor extends WorkerHost {
   private readonly logger = new Logger(TorrentDownloadProcessor.name);
@@ -28,6 +41,8 @@ export class TorrentDownloadProcessor extends WorkerHost {
     private prisma: PrismaService,
     private minioService: MinioService,
     private videoProcessingService: VideoProcessingService,
+    @InjectQueue('video-analysis') private videoAnalysisQueue: Queue,
+    @InjectQueue('torrent-download') private downloadQueue: Queue,
   ) {
     super();
   }
@@ -49,7 +64,10 @@ export class TorrentDownloadProcessor extends WorkerHost {
       // Implement actual torrent download logic
       this.logger.log(`Starting torrent download for: ${torrentUrl}`);
 
-      const downloadedFiles = await this.downloadTorrent(torrentUrl);
+      const { files: downloadedFiles } = await this.downloadTorrent(
+        torrentUrl,
+        job,
+      );
 
       this.logger.log(
         `Downloaded ${downloadedFiles.length} files, uploading to MinIO...`,
@@ -92,6 +110,16 @@ export class TorrentDownloadProcessor extends WorkerHost {
           updatedItem.episode.id,
           mainVideoFile.name,
         );
+
+        // Queue Analysis
+        this.logger.log(
+          `Auto-queueing video analysis for episode ${updatedItem.episode.id}`,
+        );
+        await this.videoAnalysisQueue.add('analyze', {
+          contentItemId,
+          episodeId: updatedItem.episode.id,
+          inputFileName: mainVideoFile.name,
+        });
       } else {
         this.logger.warn(
           `Cannot auto-queue video processing: ${!updatedItem.episode ? 'no episode' : 'no video file'}`,
@@ -102,62 +130,199 @@ export class TorrentDownloadProcessor extends WorkerHost {
         `Failed to process torrent download job ${job.id}: ${error.message}`,
       );
 
-      // Update status to DOWNLOAD_FAILED
-      await this.prisma.contentItem.update({
-        where: { id: contentItemId },
-        data: { processingStatus: 'DOWNLOAD_FAILED' },
-      });
+      // Handle low seeders / timeouts differently
+      const isTimeout =
+        error.message && 
+        (error.message.includes('Download timed out') || 
+         error.message.includes('exited with code 28'));
+      const maxSeeders = (error as any).maxSeeders;
+      const aria2cCode = (error as any).aria2cCode;
+
+      // Code 28 specifically means timeout/no seeders
+      if ((isTimeout || aria2cCode === 28) && maxSeeders !== undefined && maxSeeders < 2) {
+        // Low seeders detected
+        this.logger.warn(
+          `Download timed out with low seeders (max: ${maxSeeders}). Scheduling retry.`,
+        );
+
+        await this.prisma.contentItem.update({
+          where: { id: contentItemId },
+          data: { processingStatus: 'PENDING_SEEDERS' as any }, // Cast to any until schema types updated
+        });
+
+        // Schedule delayed retry
+        await this.downloadQueue.add(
+          'download-torrent',
+          { ...job.data, retryAttempt: (job.data.retryAttempt || 0) + 1 },
+          {
+            delay: 3600000, // 1 hour delay
+            attempts: 1,
+            removeOnComplete: false,
+            removeOnFail: false,
+          },
+        );
+      } else {
+        // Normal failure
+        await this.prisma.contentItem.update({
+          where: { id: contentItemId },
+          data: { processingStatus: 'DOWNLOAD_FAILED' },
+        });
+      }
 
       throw error;
     }
   }
 
-  private async downloadTorrent(torrentUrl: string): Promise<DownloadedFile[]> {
+  private parseAria2Status(output: string) {
+    // Example: [#2089b0 10MiB/100MiB(10%) CN:1 SD:2 DL:0B]
+    const sdMatch = output.match(/SD:(\d+)/);
+    const cnMatch = output.match(/CN:(\d+)/);
+    const progressMatch = output.match(/\((\d+)%\)/);
+
+    return {
+      seeders: sdMatch ? parseInt(sdMatch[1], 10) : null,
+      connections: cnMatch ? parseInt(cnMatch[1], 10) : null,
+      progress: progressMatch ? parseInt(progressMatch[1], 10) : null,
+    };
+  }
+
+  private async downloadTorrent(
+    torrentUrl: string,
+    job: Job<TorrentDownloadJob>,
+  ): Promise<{ files: DownloadedFile[]; maxSeeders: number }> {
     const tempDir = `/tmp/torrent-${Date.now()}`;
+    let maxSeedersDetected = 0;
 
     try {
       // Create temporary directory
       await fs.promises.mkdir(tempDir, { recursive: true });
 
       this.logger.log(`Downloading torrent to: ${tempDir}`);
+      job.log(`Downloading torrent to: ${tempDir}`);
 
       // Use aria2c to download the torrent
-      const aria2Command = [
-        'aria2c',
+      const aria2Args = [
         '--bt-metadata-only=false',
         '--bt-save-metadata=false',
         '--bt-remove-unselected-file=true',
         '--seed-time=0',
-        '--max-connection-per-server=16',
+        '--max-connection-per-server=16',  // Max allowed by aria2c
         '--max-concurrent-downloads=16',
+        '--bt-max-peers=100',
+        '--enable-dht=true',
+        '--dht-listen-port=6881-6999',
+        '--listen-port=6881-6999',
+        `--bt-tracker=${TRACKERS.join(',')}`,
         '--split=16',
         '--min-split-size=1M',
         '--continue=true',
         '--allow-overwrite=true',
         '--follow-torrent=mem',
         `--dir=${tempDir}`,
-        `"${torrentUrl}"`,
-      ].join(' ');
+        torrentUrl,
+      ];
 
-      this.logger.log(`Executing: ${aria2Command}`);
+      this.logger.log(`Executing: aria2c ${aria2Args.join(' ')}`);
 
-      // Execute aria2c with timeout
-      const { stderr } = await execAsync(aria2Command, {
-        timeout: 300000, // 5 minutes timeout
+      // Execute aria2c with timeout and progress tracking
+      await new Promise<void>((resolve, reject) => {
+        const child = spawn('aria2c', aria2Args);
+
+        // Set 30 minutes timeout
+        const timeout = setTimeout(() => {
+          child.kill();
+          const err: any = new Error('Download timed out (30 minutes limit)');
+          err.maxSeeders = maxSeedersDetected;
+          reject(err);
+        }, 1800000);
+
+        let lastLogTime = 0;
+        let stderrOutput = ''; // Capture stderr for error diagnostics
+
+        child.stdout.on('data', (data) => {
+          const output = data.toString();
+          const status = this.parseAria2Status(output);
+
+          if (status.progress !== null) {
+            job.updateProgress(status.progress);
+          }
+
+          if (status.seeders !== null) {
+            if (status.seeders > maxSeedersDetected) {
+              maxSeedersDetected = status.seeders;
+            }
+          }
+
+          if (Date.now() - lastLogTime > 30000 && status.progress !== null) {
+            const logMsg = `Download Progress: ${status.progress}%, Seeders: ${status.seeders || 0}, Connections: ${status.connections || 0}`;
+            this.logger.log(logMsg);
+            job.log(logMsg);
+            lastLogTime = Date.now();
+          }
+        });
+
+        child.stderr.on('data', (data) => {
+          const output = data.toString();
+          stderrOutput += output;
+          this.logger.warn(`aria2c stderr: ${output}`);
+          job.log(`aria2c stderr: ${output}`);
+        });
+
+        child.on('close', (code) => {
+          clearTimeout(timeout);
+          if (code === 0) {
+            job.updateProgress(100);
+            resolve();
+          } else {
+            // Enhanced error message with aria2c error details
+            let errorMsg = `aria2c exited with code ${code}`;
+            
+            // Add human-readable error explanation
+            if (code === 28) {
+              errorMsg += ' (Timeout - Failed to download within time limit or no seeders available)';
+            } else if (code === 1) {
+              errorMsg += ' (Unknown error)';
+            } else if (code === 2) {
+              errorMsg += ' (Timeout)';
+            } else if (code === 3) {
+              errorMsg += ' (Resource not found)';
+            } else if (code === 24) {
+              errorMsg += ' (Could not parse torrent file)';
+            }
+            
+            // Append stderr if available
+            if (stderrOutput.trim()) {
+              errorMsg += `\naria2c output: ${stderrOutput.trim()}`;
+            }
+            
+            const err: any = new Error(errorMsg);
+            err.maxSeeders = maxSeedersDetected;
+            err.aria2cCode = code;
+            reject(err);
+          }
+        });
+
+        child.on('error', (err: any) => {
+          clearTimeout(timeout);
+          err.maxSeeders = maxSeedersDetected;
+          reject(err);
+        });
       });
 
-      if (stderr && !stderr.includes('NOTICE')) {
-        this.logger.warn(`aria2c stderr: ${stderr}`);
-      }
-
-      this.logger.log(`aria2c completed successfully`);
+      this.logger.log(
+        `aria2c completed successfully. Max seeders: ${maxSeedersDetected}`,
+      );
+      job.log(
+        `aria2c completed successfully. Max seeders: ${maxSeedersDetected}`,
+      );
 
       // Read downloaded files
       const downloadedFiles = await this.readDownloadedFiles(tempDir);
 
-      return downloadedFiles;
+      return { files: downloadedFiles, maxSeeders: maxSeedersDetected };
     } catch (error) {
       this.logger.error(`Failed to download torrent: ${error.message}`);
+      job.log(`Failed to download torrent: ${error.message}`);
       throw error;
     } finally {
       // Clean up temporary directory

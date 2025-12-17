@@ -27,7 +27,7 @@ services:
       - "4001:4001"
 
   postgres:
-    image: postgres
+    image: pgvector/pgvector:pg17
     restart: always
     env_file:
       - apps/backend/.env

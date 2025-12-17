@@ -9,7 +9,13 @@ transformers
 sentence-transformers
 
 # For DeepDanbooru
-tensorflow
+# Downgraded to avoid mutex lock hang on macOS (conflict with pyarrow/protobuf)
+tensorflow<2.20
+# Required for transformers compatibility with newer TF/Keras (Keras 3 support)
+tf-keras
 
-
-
+# API Service
+fastapi
+uvicorn
+pydantic
+python-multipart

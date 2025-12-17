@@ -3,6 +3,7 @@ import { BullModule } from '@nestjs/bullmq';
 import { AnalysisService } from './analysis.service';
 import { AnalysisProcessor } from './analysis.processor';
 import { AnalysisResolver } from './analysis.resolver';
+import { AnalysisController } from './analysis.controller';
 import { PrismaModule } from '../prisma/prisma.module';
 import { QueueModule } from '../queue/queue.module';
 
@@ -14,6 +15,7 @@ import { QueueModule } from '../queue/queue.module';
     PrismaModule,
     QueueModule,
   ],
+  controllers: [AnalysisController],
   providers: [AnalysisService, AnalysisProcessor, AnalysisResolver],
   exports: [AnalysisService, BullModule],
 })
